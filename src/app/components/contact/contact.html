@@ -1,94 +1,137 @@
-<section id="contact" class="py-24 bg-gray-800">
-  <div class="max-w-4xl mx-auto px-6">
+<section id="contact" class="contact">
+  <div class="contact-container">
+    <header class="contact-head">
+      <span class="contact-flag" aria-hidden="true">
+        <app-flag [size]="40" />
+      </span>
+      <h2 class="contact-title">Construyamos algo juntos</h2>
+    </header>
+    <p class="contact-lede">
+      ¿Tenés un proyecto en mente o querés charlar? Mandame un mensaje y te respondo pronto.
+    </p>
 
-    <!-- Título sección -->
-    <div class="text-center mb-16">
-      <p class="text-indigo-400 font-mono text-sm tracking-widest uppercase mb-2">Hablemos</p>
-      <h2 class="text-4xl font-bold text-white">Contacto</h2>
-      <div class="w-16 h-1 bg-indigo-500 mx-auto mt-4 rounded-full"></div>
-      <p class="text-gray-400 mt-6 max-w-md mx-auto">
-        ¿Tenés un proyecto en mente o querés charlar? Mandame un mensaje y te respondo pronto.
-      </p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-
+    <div class="contact-grid">
       <!-- Info de contacto -->
-      <div class="space-y-6">
-        <div class="flex items-center gap-4 text-gray-300">
-          <div class="w-12 h-12 bg-indigo-900/50 border border-indigo-700/50 rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
-          </div>
-          <div>
-            <p class="text-gray-500 text-xs uppercase tracking-wider">Email</p>
-            <a href="mailto:tu-email@gmail.com" class="hover:text-indigo-400 transition-colors">tu-email&#64;gmail.com</a>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4 text-gray-300">
-          <div class="w-12 h-12 bg-indigo-900/50 border border-indigo-700/50 rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-          </div>
-          <div>
-            <p class="text-gray-500 text-xs uppercase tracking-wider">GitHub</p>
-            <a href="https://github.com/tu-usuario" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-400 transition-colors">github.com/tu-usuario</a>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4 text-gray-300">
-          <div class="w-12 h-12 bg-indigo-900/50 border border-indigo-700/50 rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-            </svg>
-          </div>
-          <div>
-            <p class="text-gray-500 text-xs uppercase tracking-wider">LinkedIn</p>
-            <a href="https://linkedin.com/in/tu-usuario" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-400 transition-colors">linkedin.com/in/tu-usuario</a>
-          </div>
-        </div>
+      <div class="contact-info" appReveal>
+        <p class="contact-info-label">FINAL LEVEL</p>
+        <ul class="contact-rows">
+          <li>
+            <span class="contact-row-icon" aria-hidden="true">
+              <ng-icon name="phosphorEnvelopeSimple" />
+            </span>
+            <span class="contact-row-body">
+              <span class="contact-row-key">Email</span>
+              <!-- TODO: se completa desde data/site.data.ts -->
+              <a class="contact-row-value" [href]="'mailto:' + site.email">
+                {{ site.email }}
+              </a>
+            </span>
+          </li>
+          <li>
+            <span class="contact-row-icon" aria-hidden="true">
+              <ng-icon name="phosphorGithubLogo" />
+            </span>
+            <span class="contact-row-body">
+              <span class="contact-row-key">GitHub</span>
+              <a
+                class="contact-row-value"
+                [href]="site.github"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ site.githubHandle }}
+              </a>
+            </span>
+          </li>
+          <li>
+            <span class="contact-row-icon" aria-hidden="true">
+              <ng-icon name="phosphorLinkedinLogo" />
+            </span>
+            <span class="contact-row-body">
+              <span class="contact-row-key">LinkedIn</span>
+              <!-- TODO: se completa desde data/site.data.ts -->
+              <a
+                class="contact-row-value"
+                [href]="site.linkedin"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ site.linkedinHandle }}
+              </a>
+            </span>
+          </li>
+        </ul>
+        <p class="contact-location">{{ site.location }}</p>
       </div>
 
       <!-- Formulario -->
-      <div>
+      <div class="contact-form" appReveal [appRevealDelay]="120">
         @if (submitted()) {
-          <div class="bg-green-900/30 border border-green-500/50 rounded-2xl p-8 text-center">
-            <svg class="w-12 h-12 text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <p class="text-green-400 font-semibold text-lg">¡Mensaje enviado!</p>
-            <p class="text-gray-400 mt-2 text-sm">Gracias por escribirme, te respondo pronto.</p>
-            <button (click)="submitted.set(false)" class="mt-4 text-indigo-400 hover:text-indigo-300 text-sm transition-colors">
+          <div class="contact-success" role="status">
+            <app-badge variant="gold">+100 XP</app-badge>
+            <p class="contact-success-title">MENSAJE ENVIADO</p>
+            <p class="contact-success-text">Gracias por escribirme, te respondo pronto.</p>
+            <app-game-button variant="ghost" (click)="submitAnother()">
               Enviar otro mensaje
-            </button>
+            </app-game-button>
           </div>
         } @else {
-          <form (ngSubmit)="onSubmit()" class="space-y-4">
-            <div>
-              <label class="block text-gray-400 text-sm mb-1.5" for="name">Nombre</label>
-              <input id="name" type="text" [(ngModel)]="name" name="name" required
-                     placeholder="Tu nombre"
-                     class="w-full bg-gray-900 border border-gray-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm"/>
+          <form (ngSubmit)="onSubmit()" novalidate>
+            <div class="field">
+              <label class="field-label" for="contact-name">Nombre</label>
+              <input
+                id="contact-name"
+                class="field-input"
+                type="text"
+                name="name"
+                [(ngModel)]="name"
+                placeholder="Tu nombre"
+                [attr.aria-invalid]="errors().name ? 'true' : null"
+                [attr.aria-describedby]="errors().name ? 'contact-name-error' : null"
+              />
+              @if (errors().name) {
+                <p class="field-error" id="contact-name-error">{{ errors().name }}</p>
+              }
             </div>
-            <div>
-              <label class="block text-gray-400 text-sm mb-1.5" for="email">Email</label>
-              <input id="email" type="email" [(ngModel)]="email" name="email" required
-                     placeholder="tu@email.com"
-                     class="w-full bg-gray-900 border border-gray-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm"/>
+
+            <div class="field">
+              <label class="field-label" for="contact-email">Email</label>
+              <input
+                id="contact-email"
+                class="field-input"
+                type="email"
+                name="email"
+                [(ngModel)]="email"
+                placeholder="tu@email.com"
+                [attr.aria-invalid]="errors().email ? 'true' : null"
+                [attr.aria-describedby]="errors().email ? 'contact-email-error' : null"
+              />
+              @if (errors().email) {
+                <p class="field-error" id="contact-email-error">{{ errors().email }}</p>
+              }
             </div>
-            <div>
-              <label class="block text-gray-400 text-sm mb-1.5" for="message">Mensaje</label>
-              <textarea id="message" [(ngModel)]="message" name="message" required rows="5"
-                        placeholder="Contame en qué puedo ayudarte..."
-                        class="w-full bg-gray-900 border border-gray-700 focus:border-indigo-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm resize-none"></textarea>
+
+            <div class="field">
+              <label class="field-label" for="contact-message">Mensaje</label>
+              <textarea
+                id="contact-message"
+                class="field-input field-textarea"
+                name="message"
+                [(ngModel)]="message"
+                rows="5"
+                placeholder="Contame en qué puedo ayudarte"
+                [attr.aria-invalid]="errors().message ? 'true' : null"
+                [attr.aria-describedby]="errors().message ? 'contact-message-error' : null"
+              ></textarea>
+              @if (errors().message) {
+                <p class="field-error" id="contact-message-error">{{ errors().message }}</p>
+              }
             </div>
-            <button type="submit"
-                    class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 shadow-lg hover:shadow-indigo-500/30">
+
+            <app-game-button type="submit" class="contact-submit">
               Enviar mensaje
-            </button>
+              <ng-icon name="phosphorPaperPlaneTilt" />
+            </app-game-button>
           </form>
         }
       </div>

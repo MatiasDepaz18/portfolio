@@ -1,46 +1,72 @@
-<section id="hero" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-indigo-900 relative overflow-hidden">
+<section id="hero" class="hero">
+  <div class="hero-bg pixel-grid" aria-hidden="true"></div>
 
-  <!-- Fondo decorativo -->
-  <div class="absolute inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
-  </div>
+  <div class="hero-grid">
+    <!-- Columna de texto -->
+    <div class="hero-copy">
+      <p class="hero-eyebrow hero-rise" style="--i: 60ms">Software &amp; AI Engineer</p>
 
-  <div class="text-center px-6 relative z-10">
-    <!-- Avatar placeholder -->
-    <div class="w-32 h-32 rounded-full bg-indigo-600 flex items-center justify-center text-white text-5xl font-bold mx-auto mb-8 ring-4 ring-indigo-400/30 shadow-xl">
-      <img src="PhotoWhitPoster.png" class="w-full h-full rounded-full">
+      <h1 class="hero-title hero-rise" style="--i: 150ms">
+        Matías Depaz<span class="hero-cursor" aria-hidden="true">_</span>
+      </h1>
+
+      <p class="hero-sub hero-rise" style="--i: 260ms">
+        Ingeniero en Computación. Construyo software, datos e inteligencia artificial con foco en
+        calidad y experiencia de usuario.
+      </p>
+
+      <div class="hero-ctas hero-rise" style="--i: 380ms">
+        <app-game-button (click)="scrollTo('projects')">
+          Ver proyectos
+          <ng-icon name="phosphorArrowRight" />
+        </app-game-button>
+        <app-game-button variant="ghost" (click)="scrollTo('contact')"> Contacto </app-game-button>
+      </div>
     </div>
 
-    <p class="text-indigo-400 font-mono text-lg mb-2 tracking-widest uppercase">Hola, soy</p>
-    <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-4 leading-tight">
-      Matias <span class="text-indigo-400">Depaz</span>
-    </h1>
-    <h2 class="text-xl md:text-2xl text-gray-300 font-medium mb-6">
-      Desarrollador de Software
-    </h2>
-    <p class="text-gray-400 max-w-xl mx-auto mb-10 text-lg leading-relaxed">
-      Apasionado por construir aplicaciones web modernas, con foco en experiencias de usuario limpias y código de calidad.
-    </p>
+    <!-- Columna visual: frame de consola -->
+    <div class="hero-visual hero-rise" style="--i: 220ms">
+      <div class="hero-frame">
+        <div class="hero-frame-strip" aria-hidden="true">MATIAS DEPAZ</div>
+        <img
+          class="hero-frame-img"
+          src="PhotoWhitPoster.webp"
+          alt="Matías Depaz frente a su computadora"
+          width="900"
+          height="1125"
+        />
+        <div class="hero-frame-controls" aria-hidden="true">
+          <div class="hero-dpad">
+            <span class="hero-dpad-v"></span>
+            <span class="hero-dpad-h"></span>
+          </div>
+          <div class="hero-btns">
+            <span class="hero-btn hero-btn-a"></span>
+            <span class="hero-btn hero-btn-b"></span>
+          </div>
+        </div>
+      </div>
 
-    <div class="flex flex-wrap gap-4 justify-center">
-      <button (click)="scrollTo('projects')"
-        class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5">
-        Ver proyectos
-      </button>
-      <button (click)="scrollTo('contact')"
-        class="border border-indigo-400 text-indigo-400 hover:bg-indigo-400 hover:text-gray-900 font-semibold px-8 py-3 rounded-full transition-all duration-200">
-        Contactarme
-      </button>
-    </div>
-
-    <!-- Flecha hacia abajo -->
-    <div class="mt-16 animate-bounce">
-      <button (click)="scrollTo('about')" class="text-gray-500 hover:text-indigo-400 transition-colors">
-        <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-        </svg>
-      </button>
+      <!-- Bloque "?" -->
+      <div class="hero-block">
+        <button
+          class="hero-block-btn pixel-corners"
+          (click)="toggleTip()"
+          [attr.aria-expanded]="tipOpen()"
+          aria-controls="hero-tip"
+          aria-label="Mostrar tip sobre la tecnología del sitio"
+        >
+          ?
+        </button>
+        @if (tipOpen()) {
+          <div id="hero-tip" class="hero-tip">
+            <p class="hero-tip-label">TIP</p>
+            <p class="hero-tip-text">
+              Este sitio corre con Angular 21, SSR y GSAP. Sin plantillas.
+            </p>
+          </div>
+        }
+      </div>
     </div>
   </div>
 </section>

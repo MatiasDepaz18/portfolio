@@ -1,47 +1,43 @@
-<section id="skills" class="py-24 bg-gray-800">
-  <div class="max-w-6xl mx-auto px-6">
-
-    <!-- Título sección -->
-    <div class="text-center mb-16">
-      <p class="text-indigo-400 font-mono text-sm tracking-widest uppercase mb-2">Lo que sé hacer</p>
-      <h2 class="text-4xl font-bold text-white">Habilidades <span class="text-indigo-400">técnicas</span></h2>
-      <div class="w-16 h-1 bg-indigo-500 mx-auto mt-4 rounded-full"></div>
-    </div>
-
-    @for (category of categories; track category) {
-      <div class="mb-12">
-        <h3 class="text-indigo-400 font-semibold text-sm uppercase tracking-widest mb-6 font-mono">{{ category }}</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          @for (skill of skills; track skill.name) {
-            @if (skill.category === category) {
-              <div class="bg-gray-900 rounded-xl p-5 border border-gray-700 hover:border-indigo-500/50 transition-colors">
-                <div class="flex justify-between items-center mb-3">
-                  <span class="text-white font-medium">{{ skill.name }}</span>
-                  <span class="text-indigo-400 text-sm font-mono">{{ skill.level }}%</span>
-                </div>
-                <div class="w-full bg-gray-700 rounded-full h-2">
-                  <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-700"
-                       [style.width.%]="skill.level">
-                  </div>
-                </div>
-              </div>
-            }
-          }
-        </div>
-      </div>
-    }
-
-    <!-- Tags de tecnologías extras -->
-    <div class="mt-8 text-center">
-      <p class="text-gray-400 text-sm mb-4">También he trabajado con:</p>
-      <div class="flex flex-wrap gap-2 justify-center">
-        @for (tag of ['REST APIs', 'Firebase', 'RxJS', 'Docker', 'Linux', 'VS Code']; track tag) {
-          <span class="bg-gray-900 border border-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded-full hover:border-indigo-500 transition-colors">
-            {{ tag }}
+<app-section-shell
+  id="skills"
+  eyebrow="Power-Ups"
+  title="Habilidades"
+  lede="Lo que uso para construir, ordenado por categoría. Cada power-up tiene su nota al hover."
+>
+  <div class="skills-grid">
+    @for (cat of categories; track cat.id) {
+      <article class="tray" appReveal [appRevealDelay]="$index * 80">
+        <header class="tray-head">
+          <span class="tray-item" aria-hidden="true">
+            <ng-icon [name]="cat.icon" class="tray-icon" />
           </span>
-        }
-      </div>
-    </div>
+          <div>
+            <h3 class="tray-title">{{ cat.label }}</h3>
+            <p class="tray-tagline">{{ cat.tagline }}</p>
+          </div>
+        </header>
 
+        <ul class="tray-skills">
+          @for (skill of cat.skills; track skill.name) {
+            <li class="skill-chip">
+              @if (skill.logo) {
+                <img
+                  [src]="logoUrl(skill.logo)"
+                  [alt]="skill.name"
+                  class="skill-logo"
+                  width="20"
+                  height="20"
+                  loading="lazy"
+                />
+              } @else {
+                <ng-icon [name]="skill.icon ?? ''" class="skill-glyph" />
+              }
+              <span class="skill-name">{{ skill.name }}</span>
+              <span class="skill-note">{{ skill.note }}</span>
+            </li>
+          }
+        </ul>
+      </article>
+    }
   </div>
-</section>
+</app-section-shell>

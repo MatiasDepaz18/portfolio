@@ -1,0 +1,122 @@
+:host {
+  display: block;
+}
+
+.about {
+  padding-top: 3.5rem;
+  padding-bottom: 6rem;
+  border-top: 1px solid var(--line);
+}
+
+.about-container {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 768px) {
+  .about-container {
+    padding-inline: 1.5rem;
+  }
+}
+
+/* ---------- fila del momento narrativo ---------- */
+
+.about-catch {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 3.5rem;
+}
+
+.about-stage {
+  width: 6.5rem;
+  flex-shrink: 0;
+  /* Sin overflow hidden: la lengua sale del stage para alcanzar el título.
+     El personaje entra desde fuera del viewport (x: -180) y se desvanece
+     al salir, así que no necesita recorte. */
+}
+
+@media (min-width: 768px) {
+  .about-stage {
+    width: 9.5rem;
+  }
+}
+
+.about-title {
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+/* ---------- contenido ---------- */
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .about-grid {
+    grid-template-columns: 5fr 7fr;
+    gap: 3.5rem;
+    align-items: start;
+  }
+}
+
+.about-photo-img {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  aspect-ratio: 7 / 9;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-sunken);
+}
+
+.about-photo-meta {
+  margin-top: 0.9rem;
+}
+
+.about-lead {
+  font-size: 1.12rem;
+  line-height: 1.75;
+  color: var(--ink-soft);
+  max-width: 56ch;
+}
+
+.about-lead strong {
+  color: var(--accent);
+  font-weight: 650;
+}
+
+.about-text {
+  margin-top: 1rem;
+  line-height: 1.75;
+  color: var(--ink-dim);
+  max-width: 56ch;
+}
+
+.about-coins {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  margin-top: 2.25rem;
+  padding-top: 1.75rem;
+  border-top: 1px dashed var(--line-strong);
+  max-width: 30rem;
+}
+
+@media (min-width: 768px) {
+  .about-coins {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.about-cv {
+  margin-top: 1.75rem;
+}

@@ -1,0 +1,51 @@
+<app-section-shell
+  id="trajectory"
+  title="Trayectoria"
+  lede="El recorrido hasta acá, con la bandera al final. Agregá tus experiencias en data/experience.data.ts."
+>
+  <div class="course" #course>
+    <!-- línea del nivel -->
+    <div class="course-line" aria-hidden="true">
+      <span class="course-fill" #fill></span>
+    </div>
+
+    <span class="course-start" aria-hidden="true">START</span>
+
+    <!-- checkpoints -->
+    <div class="course-nodes">
+      @for (m of milestones; track m.title) {
+        <div class="course-node" appReveal [appRevealDelay]="$index * 90">
+          <span class="course-dot" aria-hidden="true"></span>
+          <article class="course-card">
+            <p class="course-period">{{ m.period }}</p>
+            <h3 class="course-card-title">{{ m.title }}</h3>
+            <p class="course-place">{{ m.place }}</p>
+            <ul class="course-bullets">
+              @for (b of m.bullets; track b) {
+                <li>{{ b }}</li>
+              }
+            </ul>
+          </article>
+        </div>
+      }
+    </div>
+
+    <!-- bandera -->
+    <div class="course-flag" aria-hidden="true">
+      <app-flag [size]="44" />
+    </div>
+
+    <!-- Tili camina por la línea -->
+    <div class="course-walker" #walker aria-hidden="true">
+      <svg viewBox="0 0 140 120" class="walker-svg">
+        <path
+          d="M18 82 C6 74 4 58 12 52 C21 47 24 56 18 64 C25 58 35 61 38 71 Z"
+          fill="currentColor"
+        />
+        <ellipse cx="70" cy="92" rx="48" ry="24" fill="currentColor" />
+        <circle cx="78" cy="52" r="34" fill="currentColor" />
+        <ellipse cx="112" cy="58" rx="21" ry="14" fill="currentColor" />
+      </svg>
+    </div>
+  </div>
+</app-section-shell>

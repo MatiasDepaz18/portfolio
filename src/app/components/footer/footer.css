@@ -1,0 +1,131 @@
+:host {
+  display: block;
+}
+
+.footer {
+  border-top: 1px solid var(--line);
+  background: var(--bg-sunken);
+}
+
+.footer-inner {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 2.5rem 1rem 2rem;
+}
+
+@media (min-width: 768px) {
+  .footer-inner {
+    padding-inline: 1.5rem;
+  }
+}
+
+.footer-top {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+@media (min-width: 768px) {
+  .footer-top {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.footer-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.footer-mark {
+  --p: 3px;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+}
+
+.footer-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.footer-nav button {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.footer-nav button:hover {
+  color: var(--accent);
+}
+
+.footer-socials {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.footer-socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink-dim);
+  font-size: 1.05rem;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.15s ease;
+}
+
+.footer-socials a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.footer-bottom {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+  .footer-bottom {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.footer-copy,
+.footer-stack {
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+}
+
+.footer-complete {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  opacity: 0.85;
+}

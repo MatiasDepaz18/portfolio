@@ -1,11 +1,228 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/space-grotesk/index.css';
+@import '@fontsource-variable/jetbrains-mono/index.css';
+@import '@fontsource/press-start-2p/400.css';
 
-html {
-  scroll-behavior: smooth;
+/* ==========================================================================
+   DESIGN TOKENS - "Console" system
+   Theme: dark console (default) + light phosphor-paper variant.
+   Accent: DMG green (single accent, locked for the whole page).
+   Gold: semantic reward color, ONLY for coins / XP / rewards.
+   Shape rule: containers 6px radius; small interactive = pixel-cut corners
+   (clip-path); coins are circles (semantic). No rounded-full elsewhere.
+   Z-INDEX SCALE: content 0-10 / nav dropdown 20 / navbar 30 / overlay 40 /
+   crt 50 (pointer-events-none).
+   ========================================================================== */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg-base: #0b0f0d;
+  --bg-surface: #101511;
+  --bg-elevated: #161d17;
+  --bg-sunken: #070a08;
+  --ink: #e9eee3;
+  --ink-soft: #b7c0b1;
+  --ink-dim: #8a958a;
+  --line: #222b23;
+  --line-strong: #334034;
+  --accent: #86a80f;
+  --accent-ink: #0b0f0d;
+  --accent-soft: rgb(134 168 15 / 0.12);
+  --gold: #d9a441;
+  --gold-soft: rgb(217 164 65 / 0.12);
+  --danger: #e5736c;
+  --focus: #b7d93a;
 }
 
-body {
-  background-color: #111827;
-  color: #f9fafb;
-  font-family: 'Inter', system-ui, sans-serif;
+[data-theme='light'] {
+  color-scheme: light;
+  --bg-base: #e9ece2;
+  --bg-surface: #f0f3ea;
+  --bg-elevated: #f7f9f3;
+  --bg-sunken: #dfe3d7;
+  --ink: #10140e;
+  --ink-soft: #3d453b;
+  --ink-dim: #64705f;
+  --line: #c9d0c1;
+  --line-strong: #aeb7a6;
+  --accent: #4e6709;
+  --accent-ink: #f2f5ee;
+  --accent-soft: rgb(78 103 9 / 0.1);
+  --gold: #a8792a;
+  --gold-soft: rgb(168 121 42 / 0.12);
+  --danger: #b0302a;
+  --focus: #59730a;
+}
+
+@theme {
+  --color-base: var(--bg-base);
+  --color-surface: var(--bg-surface);
+  --color-elevated: var(--bg-elevated);
+  --color-sunken: var(--bg-sunken);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-dim: var(--ink-dim);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-gold: var(--gold);
+  --color-danger: var(--danger);
+
+  --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, monospace;
+  --font-pixel: 'Press Start 2P', 'JetBrains Mono Variable', monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--ink);
+    font-family: var(--font-display);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  section[id] {
+    scroll-margin-top: 4.5rem;
+  }
+
+  ng-icon {
+    display: inline-flex;
+    width: 1.25em;
+    height: 1.25em;
+    flex-shrink: 0;
+  }
+
+  ng-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-sunken);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border: 2px solid var(--bg-sunken);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-dim);
+  }
+}
+
+/* ---------------------------- utilities ---------------------------- */
+
+/* Pixel-cut corners for small interactive elements (buttons, badges, tiles) */
+.pixel-corners {
+  --p: 6px;
+  clip-path: polygon(
+    0 var(--p),
+    var(--p) 0,
+    calc(100% - var(--p)) 0,
+    100% var(--p),
+    100% calc(100% - var(--p)),
+    calc(100% - var(--p)) 100%,
+    var(--p) 100%,
+    0 calc(100% - var(--p))
+  );
+}
+
+/* Subtle platformer grid backdrop */
+.pixel-grid {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 34px 34px;
+  opacity: 0.55;
+}
+
+/* Static CRT scanline layer. Fixed, pointer-events-none, dark theme only. */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  display: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0) 0,
+    rgb(0 0 0 / 0) 2px,
+    rgb(233 238 227 / 0.022) 2px,
+    rgb(233 238 227 / 0.022) 4px
+  );
+}
+
+[data-theme='dark'] .crt-overlay {
+  display: block;
+}
+
+/* Scroll reveal (paired with the [appReveal] directive) */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero entrance cascade */
+.hero-rise {
+  animation: hero-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--i, 0ms);
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reduced motion: collapse every decorative transition to the final state */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-rise {
+    animation: none;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }

@@ -1,13 +1,39 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>PortfoloWeb</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-  <app-root></app-root>
-</body>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Matías Depaz | Software &amp; AI Engineer</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Portfolio de Matías Depaz, ingeniero en Computación. Software, datos e inteligencia artificial con foco en calidad, experiencia y diseño."
+    />
+    <meta name="theme-color" content="#0b0f0d" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Matías Depaz | Software & AI Engineer" />
+    <meta
+      property="og:description"
+      content="Ingeniero en Computación. Software, datos e inteligencia artificial con foco en calidad y experiencia."
+    />
+    <meta property="og:site_name" content="Matías Depaz" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="preload" as="image" href="/PhotoWhitPoster.webp" />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+          var theme = stored === 'light' || (stored !== 'dark' && prefersLight) ? 'light' : 'dark';
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+    <div class="crt-overlay" aria-hidden="true"></div>
+  </body>
 </html>
