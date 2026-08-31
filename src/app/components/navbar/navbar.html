@@ -1,0 +1,43 @@
+<nav [class]="isScrolled() ? 'bg-gray-900/95 backdrop-blur shadow-lg' : 'bg-transparent'"
+     class="fixed top-0 left-0 w-full z-50 transition-all duration-300">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+
+    <!-- Logo -->
+    <button (click)="scrollTo('hero')" class="text-2xl font-bold text-white hover:text-indigo-400 transition-colors">
+      <span class="text-indigo-400">Ingeniero</span> 
+      Matias Depaz
+      <span class="text-indigo-400">.</span>
+    </button>
+
+    <!-- Links escritorio -->
+    <ul class="hidden md:flex gap-8 text-sm font-medium text-gray-300">
+      <li><button (click)="scrollTo('about')" class="hover:text-indigo-400 transition-colors">Sobre mí</button></li>
+      <li><button (click)="scrollTo('skills')" class="hover:text-indigo-400 transition-colors">Habilidades</button></li>
+      <li><button (click)="scrollTo('projects')" class="hover:text-indigo-400 transition-colors">Proyectos</button></li>
+      <li><button (click)="scrollTo('contact')" class="hover:text-indigo-400 transition-colors">Contacto</button></li>
+    </ul>
+
+    <!-- Botón menú móvil -->
+    <button (click)="toggleMenu()" class="md:hidden text-gray-300 hover:text-white focus:outline-none">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        @if (!isMenuOpen()) {
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        } @else {
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        }
+      </svg>
+    </button>
+  </div>
+
+  <!-- Menú móvil -->
+  @if (isMenuOpen()) {
+    <div class="md:hidden bg-gray-900/95 backdrop-blur px-6 pb-4">
+      <ul class="flex flex-col gap-4 text-gray-300 font-medium">
+        <li><button (click)="scrollTo('about')" class="hover:text-indigo-400 transition-colors">Sobre mí</button></li>
+        <li><button (click)="scrollTo('skills')" class="hover:text-indigo-400 transition-colors">Habilidades</button></li>
+        <li><button (click)="scrollTo('projects')" class="hover:text-indigo-400 transition-colors">Proyectos</button></li>
+        <li><button (click)="scrollTo('contact')" class="hover:text-indigo-400 transition-colors">Contacto</button></li>
+      </ul>
+    </div>
+  }
+</nav>
