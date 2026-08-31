@@ -1,7 +1,9 @@
 <section id="hero" class="hero">
   <div class="hero-bg pixel-grid" aria-hidden="true"></div>
 
-  <div class="hero-grid">
+  <app-hero-yoshi />
+
+  <div class="hero-grid" [class.hero-scene-hidden]="sceneHidden()">
     <!-- Columna de texto -->
     <div class="hero-copy">
       <p class="hero-eyebrow hero-rise" style="--i: 60ms">Software &amp; AI Engineer</p>

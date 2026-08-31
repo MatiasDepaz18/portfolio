@@ -33,6 +33,14 @@
   align-items: center;
 }
 
+/* El contenido arranca escondido a la derecha para la escena de Yoshi
+   (la clase se aplica SOLO en cliente no-reduced-motion). GSAP anima
+   x/opacity inline cuando la succión lo trae. */
+.hero-scene-hidden {
+  transform: translateX(100vw);
+  opacity: 0;
+}
+
 @media (min-width: 768px) {
   .hero-grid {
     padding-inline: 1.5rem;

@@ -35,17 +35,9 @@
       <app-flag [size]="44" />
     </div>
 
-    <!-- Tili camina por la línea -->
+    <!-- Yoshi corre por la línea -->
     <div class="course-walker" #walker aria-hidden="true">
-      <svg viewBox="0 0 140 120" class="walker-svg">
-        <path
-          d="M18 82 C6 74 4 58 12 52 C21 47 24 56 18 64 C25 58 35 61 38 71 Z"
-          fill="currentColor"
-        />
-        <ellipse cx="70" cy="92" rx="48" ry="24" fill="currentColor" />
-        <circle cx="78" cy="52" r="34" fill="currentColor" />
-        <ellipse cx="112" cy="58" rx="21" ry="14" fill="currentColor" />
-      </svg>
+      <app-yoshi-character state="run" />
     </div>
   </div>
 </app-section-shell>

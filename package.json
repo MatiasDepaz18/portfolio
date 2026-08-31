@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:portfolo-web": "node dist/portfolo-web/server/server.mjs"
+    "serve:ssr:portfolo-web": "node dist/portfolo-web/server/server.mjs",
+    "extract:yoshi": "node scripts/extract-yoshi-sprites.mjs"
   },
   "private": true,
   "packageManager": "npm@11.12.1",

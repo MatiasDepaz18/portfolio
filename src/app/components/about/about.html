@@ -1,16 +1,10 @@
 <section id="about" class="about">
   <div class="about-container">
-    <!-- Fila del momento narrativo: Tili + título -->
-    <div class="about-catch">
-      <div class="about-stage" #stage>
-        <app-character />
-      </div>
-      <h2 class="about-title" #title>Sobre mí</h2>
-    </div>
+    <h2 class="about-title">Sobre mí</h2>
 
     <div class="about-grid">
       <!-- Foto -->
-      <div class="about-photo" appReveal [appRevealDelay]="0">
+      <div class="about-photo">
         <img
           src="MyPhoto.webp"
           alt="Matías Depaz, ingeniero en computación"
@@ -25,33 +19,33 @@
 
       <!-- Bio -->
       <div class="about-body">
-        <p class="about-lead" appReveal [appRevealDelay]="60">
+        <p class="about-lead">
           Soy <strong>Matías Depaz</strong>, desarrollador de software con más de un año de
           experiencia. Me especializo en desarrollo web con tecnologías modernas como Angular y
           TypeScript.
         </p>
-        <p class="about-text" appReveal [appRevealDelay]="120">
+        <p class="about-text">
           Además, soy ingeniero en Computación egresado de la Facultad de Ciencias Exactas y
           Tecnologías de la UNT (Universidad Nacional de Tucumán).
         </p>
-        <p class="about-text" appReveal [appRevealDelay]="180">
+        <p class="about-text">
           Me gusta aprender constantemente y enfrentar desafíos nuevos. Disfruto trabajar en equipo
           y comunicar ideas complejas de forma sencilla. Siempre busco escribir código limpio,
           escalable y bien estructurado.
         </p>
-        <p class="about-text" appReveal [appRevealDelay]="240">
+        <p class="about-text">
           Cuando no estoy programando, me encontrás explorando nuevas tecnologías, leyendo sobre
           arquitectura de software o mejorando mis habilidades.
         </p>
 
         <!-- Monedas: metadata -->
-        <div class="about-coins" appReveal [appRevealDelay]="300">
+        <div class="about-coins">
           @for (coin of coins; track coin) {
             <app-coin [label]="coin" />
           }
         </div>
 
-        <div class="about-cv" appReveal [appRevealDelay]="360">
+        <div class="about-cv">
           <!-- TODO: asegurate de que exista el archivo en public/cv.pdf -->
           <app-game-button variant="ghost" [href]="cvUrl">
             <ng-icon name="phosphorDownloadSimple" />

@@ -20,28 +20,7 @@
   }
 }
 
-/* ---------- fila del momento narrativo ---------- */
-
-.about-catch {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  margin-bottom: 3.5rem;
-}
-
-.about-stage {
-  width: 6.5rem;
-  flex-shrink: 0;
-  /* Sin overflow hidden: la lengua sale del stage para alcanzar el título.
-     El personaje entra desde fuera del viewport (x: -180) y se desvanece
-     al salir, así que no necesita recorte. */
-}
-
-@media (min-width: 768px) {
-  .about-stage {
-    width: 9.5rem;
-  }
-}
+/* ---------- encabezado ---------- */
 
 .about-title {
   font-size: clamp(1.9rem, 4.5vw, 3rem);
@@ -49,6 +28,7 @@
   letter-spacing: -0.03em;
   line-height: 1.05;
   color: var(--ink);
+  margin-bottom: 3.5rem;
 }
 
 /* ---------- contenido ---------- */

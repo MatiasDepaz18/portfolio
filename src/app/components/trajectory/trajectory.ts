@@ -3,12 +3,13 @@ import { GsapService } from '../../services/gsap.service';
 import { SectionShell } from '../shared/section-shell/section-shell';
 import { Flag } from '../shared/flag/flag';
 import { RevealDirective } from '../../directives/reveal.directive';
+import { YoshiCharacter } from '../../game/sprites/yoshi-character';
 import { milestones } from '../../data/experience.data';
 
 @Component({
   selector: 'app-trajectory',
   standalone: true,
-  imports: [SectionShell, Flag, RevealDirective],
+  imports: [SectionShell, Flag, RevealDirective, YoshiCharacter],
   templateUrl: './trajectory.html',
   styleUrl: './trajectory.css',
 })
@@ -46,7 +47,7 @@ export class Trajectory implements OnDestroy {
   }
 
   /**
-   * El recorrido se dibuja al scrollear: la línea avanza y Tili camina
+   * El recorrido se dibuja al scrollear: la línea avanza y Yoshi corre
    * desde START hasta la bandera. Solo desktop (mobile: línea vertical).
    */
   private async initCourseScrub(): Promise<void> {

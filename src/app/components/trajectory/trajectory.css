@@ -178,15 +178,8 @@
     left: 0;
     bottom: -0.15rem;
     width: 2.4rem;
-    color: var(--ink);
     opacity: 0.9;
     will-change: transform;
-  }
-
-  .walker-svg {
-    display: block;
-    width: 100%;
-    height: auto;
   }
 }
 
