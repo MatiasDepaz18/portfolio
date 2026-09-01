@@ -133,21 +133,34 @@ Escena de "succión" en el hero (se ejecuta UNA vez, al cargar):
 [0s]   hero-grid oculto a la derecha (clase hero-scene-hidden:
        translateX(100vw) + opacity 0, solo cliente no-reduced-motion)
 
-[0.5s] Yoshi (tongue/01 fijo) aparece con fade+slide en el medio-izquierdo
+[0.5s] Yoshi entra CAMINANDO (walk) deslizándose a su lugar en el
+       medio-izquierdo; su sombra de piso aparece con él
 
-[1.0s] La lengua se despliega: N segmentos de tongueStyles/02 (cuerpo de
-       la lengua) con tongueStyles/05 como punta, en cascada
-       (scaleX 0->1, origin left) desde la boca hasta el borde derecho
-       del hero
+[1.2s] VOLTERETA al llegar (flip + arco de GSAP); la sombra se achica
+       en el aire
 
-[2.0s] Pausa breve (la lengua "llegó a la derecha")
+[1.8s] Aterriza en tongueIdle (tongueStyles/01) con un "plant"
 
-[2.3s] SUCCIÓN:
-         • hero-grid: x 100vw -> 0 con ease expo.in (acelera = absorbido)
-         • lengua: se contrae en cascada inversa (punta -> boca,
-           power3.in) = "comiéndolo"
+[2.0s] La lengua se despliega: N segmentos de tongueStyles/02 (cuerpo)
+       con tongueStyles/05 como punta, en barrido lineal de izquierda a
+       derecha (scaleX 0->1, origin left, un pedazo por vez) desde la
+       boca hasta el borde derecho del hero. El barrido dura SIEMPRE
+       1.5s: el paso por segmento se deriva de la cantidad, así no se
+       alarga en pantallas anchas
 
-[3.2s] Yoshi se desvanece. El contenido queda en su lugar.
+[3.6s] Pausa breve (la lengua "llegó a la derecha")
+
+[3.8s] SUCCIÓN:
+         • hero-grid: x 100vw -> 0 con ease power3.in (acelera = absorbido)
+           y escala 1.25 -> 1 (llega grande y se acomoda en su lugar)
+         • lengua: se contrae y desvanece en cascada real (punta -> boca,
+           un pedazo por vez, power3.in), dura lo mismo que el vuelo del
+           grid (0.95s) y termina exacto cuando el hero aterriza
+
+[4.8s] Yoshi se da vuelta (espejo scaleX -1), cambia a walk y se va
+       caminando hacia la izquierda (sombra simétrica incluida; el
+       overflow del hero lo corta al salir). El contenido queda en su
+       lugar.
 ```
 
 Detalles:

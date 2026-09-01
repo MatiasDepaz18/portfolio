@@ -1,15 +1,17 @@
 import { Component, input } from '@angular/core';
 
-/** Moneda dorada con etiqueta. Semántica: recompensa/metadata. */
+/**
+ * Moneda real (sprite) con label. Semántica: recompensa/metadata.
+ * Levita en todo momento (CSS) y reacciona al hover levantándose un
+ * poco. NO gira.
+ */
 @Component({
   selector: 'app-coin',
   standalone: true,
   template: `
     <div class="coin-wrap">
-      <div class="coin" role="img" [attr.aria-label]="'Moneda: ' + label()">
-        <div class="coin-face">
-          <span class="coin-dot"></span>
-        </div>
+      <div class="coin-float" role="img" [attr.aria-label]="'Moneda: ' + label()">
+        <div class="coin-sprite"></div>
       </div>
       <span class="coin-label">{{ label() }}</span>
     </div>
@@ -21,44 +23,39 @@ import { Component, input } from '@angular/core';
       align-items: center;
       gap: 0.5rem;
     }
-    .coin {
+
+    /* Wrapper: levitación continua (transform propio, no pelea con el hover) */
+    .coin-float {
       width: 2.75rem;
-      height: 2.75rem;
-      border-radius: 9999px;
-      background: radial-gradient(
-        circle at 32% 28%,
-        #f3d98a 0%,
-        var(--gold) 42%,
-        color-mix(in srgb, var(--gold) 72%, #000 28%) 100%
-      );
-      border: 2px solid color-mix(in srgb, var(--gold) 60%, transparent);
-      box-shadow:
-        inset 0 -2px 0 rgb(0 0 0 / 0.25),
-        inset 0 2px 2px rgb(255 255 255 / 0.35),
-        0 2px 0 color-mix(in srgb, var(--gold) 35%, transparent);
-      display: grid;
-      place-items: center;
-      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-      transform-style: preserve-3d;
+      animation: coin-float 2.2s ease-in-out infinite;
     }
-    .coin:hover,
-    .coin:focus-visible {
-      transform: rotateY(360deg);
+
+    .coin-sprite {
+      width: 100%;
+      aspect-ratio: 920 / 966;
+      background-image: url('/assets/game/coins/coin-clean.png');
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      image-rendering: pixelated;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      will-change: transform;
     }
-    .coin-face {
-      width: 1.15rem;
-      height: 1.15rem;
-      border-radius: 9999px;
-      border: 2px dashed color-mix(in srgb, var(--gold) 55%, transparent);
-      display: grid;
-      place-items: center;
+
+    /* Reacción: se levanta un poco cuando el mouse pasa por encima */
+    .coin-wrap:hover .coin-sprite {
+      transform: translateY(-0.6rem);
     }
-    .coin-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 9999px;
-      background: color-mix(in srgb, var(--gold) 70%, #000 30%);
+
+    @keyframes coin-float {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-0.35rem);
+      }
     }
+
     .coin-label {
       font-family: var(--font-mono);
       font-size: 0.65rem;
@@ -67,6 +64,16 @@ import { Component, input } from '@angular/core';
       color: var(--ink-dim);
       text-align: center;
       line-height: 1.5;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .coin-float {
+        animation: none;
+      }
+
+      .coin-wrap:hover .coin-sprite {
+        transform: none;
+      }
     }
   `,
 })

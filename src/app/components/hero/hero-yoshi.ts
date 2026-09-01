@@ -9,18 +9,31 @@ import { HeroTongue, TONGUE_SEGMENT_WIDTH_PX } from './hero-tongue';
  *   1. El hero-grid está oculto a la derecha (clase hero-scene-hidden
  *      en el Hero: translateX(100vw) + opacity 0, solo en cliente
  *      no-reduced-motion).
- *   2. Yoshi (tongue/01 fijo) aparece con fade+slide en el medio-
- *      izquierdo del hero.
- *   3. Sacó la lengua: los segmentos de tongueStyles se despliegan en
- *      cascada (scaleX 0 -> 1, origin left) desde la boca hasta el
- *      borde derecho del hero.
- *   4. SUCCIÓN: el hero-grid vuelve desde la derecha (ease expo.in,
- *      acelera al final = absorbido) mientras la lengua se contrae en
- *      cascada inversa (punta -> boca, power3.in = "comiéndolo").
- *   5. Yoshi se desvanece; el contenido queda en su lugar normal.
+ *   2. Yoshi entra CAMINANDO (walk) mientras se desliza hacia su lugar
+ *      en el medio-izquierdo del hero. Su sombra de piso aparece con él.
+ *   3. Al llegar hace una VOLTERETA (flip, con arco de GSAP); la sombra
+ *      se achica mientras está en el aire.
+ *   4. Aterriza en la pose de lengua (tongueIdle = tongueStyles/01) con
+ *      un pequeño "plant"; la sombra vuelve a su tamaño.
+ *   5. Saca la lengua: los segmentos de tongueStyles/02 (punta: /05) se
+ *      despliegan en barrido lineal de izquierda a derecha (scaleX 0 -> 1,
+ *      origin left, un pedazo por vez) desde la boca hasta el borde
+ *      derecho del hero. El barrido dura SIEMPRE 1.5s (el paso por
+ *      segmento se deriva de la cantidad: no se alarga en pantallas
+ *      anchas).
+ *   6. SUCCIÓN: el hero-grid vuelve desde la derecha (ease power3.in,
+ *      acelera al final = absorbido) y se acomoda de escala 1.25 -> 1
+ *      mientras la lengua se contrae y DESVANECE en cascada real desde
+ *      la punta hacia la boca, un pedazo por vez ("comiéndolo"). La
+ *      retracción dura lo mismo que el vuelo del grid (0.95s) y termina
+ *      exacto cuando el hero aterriza.
+ *   7. Yoshi se da vuelta (espejo scaleX -1) y se va CAMINANDO (walk)
+ *      hacia la izquierda; la sombra es simétrica y lo acompaña (vive
+ *      dentro del stage) y el overflow del hero lo corta al salir. El
+ *      contenido queda en su lugar normal.
  *
- * El cuerpo de Yoshi es SIEMPRE tongueIdle (tongue/01); la lengua es un
- * sprite compuesto aparte (HeroTongue).
+ * El cuerpo de Yoshi cambia de estado (walk -> flip -> tongueIdle ->
+ * walk); la lengua es un sprite compuesto aparte (HeroTongue).
  */
 @Component({
   selector: 'app-hero-yoshi',
@@ -29,7 +42,8 @@ import { HeroTongue, TONGUE_SEGMENT_WIDTH_PX } from './hero-tongue';
   template: `
     <div class="hero-yoshi" aria-hidden="true">
       <div class="hero-yoshi-stage" #yoshiStage>
-        <app-yoshi-character state="tongueIdle" />
+        <app-yoshi-character #yoshi state="tongueIdle" />
+        <div class="hero-yoshi-shadow" #shadowEl></div>
       </div>
       <div class="hero-yoshi-tongue" #tongueWrap>
         <app-hero-tongue #tongue />
@@ -57,11 +71,32 @@ import { HeroTongue, TONGUE_SEGMENT_WIDTH_PX } from './hero-tongue';
       width: 100%;
     }
 
-    /* La lengua sale de la boca (tongue/01 tiene la boca a la derecha) */
+    /* Sombra de piso: ancla el personaje (opacity 0 hasta que la escena
+       la muestra; en SSR / reduced-motion no aparece).
+       En dark el fondo es casi negro (#0b0f0d): la sombra necesita ser
+       muy oscura para notarse. En light se atenúa. */
+    .hero-yoshi-shadow {
+      position: absolute;
+      left: 50%;
+      bottom: -0.4rem;
+      transform: translateX(-50%);
+      width: 75%;
+      height: 0.7rem;
+      border-radius: 9999px;
+      background: radial-gradient(ellipse, rgb(0 0 0 / 0.8), transparent 70%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    :host-context([data-theme='light']) .hero-yoshi-shadow {
+      background: radial-gradient(ellipse, rgb(0 0 0 / 0.3), transparent 70%);
+    }
+
+    /* La lengua sale de la boca (tongueStyles/01 tiene la boca a la derecha) */
     .hero-yoshi-tongue {
       position: absolute;
       left: 68%;
-      top: 62%;
+      top: 42%;
       transform: translateY(-50%);
     }
 
@@ -71,16 +106,21 @@ import { HeroTongue, TONGUE_SEGMENT_WIDTH_PX } from './hero-tongue';
         width: 6.5rem;
       }
 
+      /* Misma alineación que desktop: la boca está en la misma posición
+         relativa del stage (aspect-ratio fijo). */
       .hero-yoshi-tongue {
-        left: 80%;
+        left: 68%;
+        top: 39%;
       }
     }
   `,
 })
 export class HeroYoshi implements OnDestroy {
+  private yoshi = viewChild(YoshiCharacter);
   private tongue = viewChild(HeroTongue);
   private tongueWrap = viewChild<ElementRef<HTMLDivElement>>('tongueWrap');
   private stage = viewChild<ElementRef<HTMLDivElement>>('yoshiStage');
+  private shadow = viewChild<ElementRef<HTMLDivElement>>('shadowEl');
 
   private ctx: { revert: () => void } | null = null;
   private cleanup: (() => void) | null = null;
@@ -98,8 +138,10 @@ export class HeroYoshi implements OnDestroy {
   private async initScene(): Promise<void> {
     const stageEl = this.stage()?.nativeElement;
     const tongueWrapEl = this.tongueWrap()?.nativeElement;
+    const shadowEl = this.shadow()?.nativeElement;
     const tongue = this.tongue();
-    if (!stageEl || !tongueWrapEl || !tongue) {
+    const yoshi = this.yoshi();
+    if (!stageEl || !tongueWrapEl || !shadowEl || !tongue || !yoshi) {
       return;
     }
 
@@ -115,7 +157,7 @@ export class HeroYoshi implements OnDestroy {
         }
         // La lengua cruza todo el hero (el exceso se corta en overflow hidden).
         tongue.build(Math.ceil(window.innerWidth / TONGUE_SEGMENT_WIDTH_PX) + 1);
-        void this.runScene(gsap, heroGrid, stageEl, tongueWrapEl);
+        void this.runScene(gsap, heroGrid, stageEl, tongueWrapEl, shadowEl, yoshi);
       });
     });
 
@@ -134,6 +176,8 @@ export class HeroYoshi implements OnDestroy {
     heroGrid: HTMLElement,
     stageEl: HTMLDivElement,
     tongueWrapEl: HTMLDivElement,
+    shadowEl: HTMLDivElement,
+    yoshi: YoshiCharacter,
   ): Promise<void> {
     // Espera dos frames: los segmentos se renderizan tras build().
     await new Promise<void>((resolve) => {
@@ -143,36 +187,78 @@ export class HeroYoshi implements OnDestroy {
     if (segments.length === 0) {
       return;
     }
+    // El barrido completo dura SIEMPRE 1.5s (deploy) y 0.95s (retract),
+    // sin importar cuántos segmentos haya: el paso por pedazo se deriva
+    // del total y así la escena no se alarga en pantallas anchas.
+    const deployStep = 1.5 / segments.length;
+    const retractStep = 0.95 / segments.length;
+    // Distancia para salir caminando por el borde izquierdo del hero
+    // (cubre desktop y mobile; el overflow hidden lo corta al salir).
+    const exitX = -(window.innerWidth * 0.2 + 160);
 
+    // Entrada: Yoshi camina hacia su lugar.
+    yoshi.setState('walk');
     gsap.set(stageEl, { x: -160, opacity: 0 });
     gsap.set(tongueWrapEl, { opacity: 0 });
+    gsap.set(shadowEl, { opacity: 0, scaleX: 1 });
     gsap.set(segments, { scaleX: 0, transformOrigin: 'left center' });
     // El hero-grid ya está oculto por la clase hero-scene-hidden (CSS).
-    gsap.set(heroGrid, { opacity: 0 });
+    // Acá fijamos el estado inline que anima la succión: entra desde la
+    // derecha a escala 1.25 y se acomoda en su lugar (x 0, scale 1).
+    gsap.set(heroGrid, { x: window.innerWidth, scale: 1.25, opacity: 0 });
 
-    const tl = gsap.timeline({ defaults: { ease: 'power2.out' }, delay: 0.55 });
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' }, delay: 0.5 });
 
-    tl.to(stageEl, { x: 0, opacity: 1, duration: 0.45 })
-      .to(tongueWrapEl, { opacity: 1, duration: 0.15 }, '<0.3')
-      // Despliegue: la lengua se estira segmento a segmento hacia la derecha.
-      .to(segments, { scaleX: 1, duration: 0.3, stagger: 0.025, ease: 'power2.out' }, '>-0.05')
+    tl.to(stageEl, { x: 0, opacity: 1, duration: 0.6 })
+      .to(shadowEl, { opacity: 1, duration: 0.3 }, '<0.15')
+      // Voltereta al llegar: flip + arco; la sombra se achica en el aire.
+      .call(() => yoshi.setState('flip'), undefined, '>-0.05')
+      .to(stageEl, { y: -80, duration: 0.27, ease: 'power2.out' }, '<0.05')
+      .to(shadowEl, { scaleX: 0.55, opacity: 0.5, duration: 0.27 }, '<')
+      .to(stageEl, { y: 0, duration: 0.27, ease: 'power2.in' }, '>-0.02')
+      .to(shadowEl, { scaleX: 1, opacity: 1, duration: 0.27 }, '<')
+      // Aterriza en la pose de lengua (tongueStyles/01) con un "plant".
+      .call(() => yoshi.setState('tongueIdle'), undefined, '>-0.05')
+      .to(stageEl, { y: 5, duration: 0.1, yoyo: true, repeat: 1, ease: 'sine.inOut' }, '<')
+      // Despliegue: barrido lineal de izquierda a derecha. Con stagger ==
+      // duration, un solo pedazo se llena a la vez y el siguiente arranca
+      // justo cuando el anterior completó (frente continuo, sin huecos).
+      .to(tongueWrapEl, { opacity: 1, duration: 0.15 }, '>-0.05')
+      .to(
+        segments,
+        { scaleX: 1, duration: deployStep, stagger: deployStep, ease: 'power2.out' },
+        '>-0.05',
+      )
       // Pausa: la lengua llegó al borde derecho del hero.
-      .to({}, { duration: 0.4 })
+      .to({}, { duration: 0.2 })
       // SUCCIÓN: el grid vuelve desde la derecha mientras la lengua se
-      // contrae y DESVANECE desde la punta hacia la boca ("comiéndolo").
-      .to(heroGrid, { x: 0, opacity: 1, duration: 0.95, ease: 'expo.in' }, '>-0.05')
+      // contrae y DESVANECE en cascada desde la punta hacia la boca, un
+      // pedazo por vez ("comiéndolo"). El grid llega grande (1.25) y se
+      // acomoda a escala 1 con un ease propio y suave. El retract dura lo
+      // mismo que el vuelo del grid y arranca en "<", así la lengua se
+      // termina de comer exacto cuando el hero aterriza.
+      .to(heroGrid, { x: 0, opacity: 1, duration: 0.95, ease: 'power3.in' }, '>-0.05')
+      .to(heroGrid, { scale: 1, duration: 0.95, ease: 'power2.inOut' }, '<')
       .to(
         segments,
         {
           scaleX: 0,
           opacity: 0,
-          duration: 0.6,
-          stagger: { each: 0.01, from: 'end' },
+          duration: retractStep,
+          stagger: { each: retractStep, from: 'end' },
           ease: 'power3.in',
         },
-        '<0.15',
+        '<',
       )
-      .to(stageEl, { opacity: 0, duration: 0.35, ease: 'power2.in' }, '>-0.25');
+      // Salida: se da vuelta (espejo scaleX -1, queda mirando a la
+      // izquierda), queda parado un momento, cambia a walk y se va
+      // caminando hacia la izquierda. La sombra es simétrica y vive
+      // dentro del stage, así que se espeja sin notarse y se va con él;
+      // el overflow del hero lo corta al salir por el borde.
+      .call(() => yoshi.setState('walk'), undefined, '>-0.1')
+      .to(stageEl, { scaleX: -1, duration: 0.18, ease: 'power2.inOut' }, '<')
+      .to({}, { duration: 0.3 })
+      .to(stageEl, { x: exitX, duration: 1.4, ease: 'power1.in' });
   }
 
   ngOnDestroy(): void {

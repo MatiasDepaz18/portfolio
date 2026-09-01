@@ -1,36 +1,32 @@
-# Gameboy - Sprite Sheet
+# Gameboy - Sprite
 
-Carpeta preparada para el sprite de la Game Boy del portfolio.
+Sprite real de la Game Boy del portfolio. Se usa en About, superpuesta
+sobre la foto de Matías: la pantalla del sprite es TRANSPARENTE
+(`gameboy-body.png`), así la foto se ve a través de la pantalla, como el
+juego que está viendo el jugador.
 
-## Cómo integrarlo
+## Archivos
 
-1. Dejá el sprite acá, por ejemplo: `gameboy-sprites.png`
-   (sugerencia: estados en filas, fondo transparente).
-2. Creá la definición en `src/app/game/sprites/` siguiendo el patrón de
-   `yoshi.sprites.ts`:
+- `gameboy.png`: sprite original subido (900x512). **Sin transparencia**:
+  incluye fondo blanco.
+- `gameboy-clean.png`: sprite con el fondo removido (generado).
+- `gameboy-body.png`: sprite con la pantalla LCD recortada (transparente).
+  Es el que usa el sitio (la foto de About pasa a través de la pantalla).
 
-   ```ts
-   export const GAMEBOY_SHEET: SpriteSheet = {
-     url: 'assets/game/gameboy/gameboy-sprites.png',
-     sheetWidth: <ancho>,
-     sheetHeight: <alto>,
-     basePath: 'assets/game/gameboy',
-     defaultAnimation: 'open',
-     animations: {
-       open: { fps: 1, frames: [ /* ... */ ] },
-       playing: { fps: 4, frames: [ /* ... */ ] },
-       close: { fps: 1, frames: [ /* ... */ ] },
-     },
-   };
-   ```
+## Cómo limpiar el fondo y recortar la pantalla
 
-3. Ejecutá el extractor si el sheet tiene coordenadas (los bboxes van en
-   la definición) o usá PNG individuales directos con `frame()`.
-4. Usalo:
+Si reemplazás `gameboy.png`, ejecutá:
 
-   ```html
-   <app-sprite-character [sheet]="GAMEBOY_SHEET" state="playing" />
-   ```
+```
+npm run clean:assets
+```
 
-Los PNG individuales extraídos se guardan acá mismo:
-`src/assets/game/gameboy/<anim>/NN.png`.
+El script remueve el fondo (flood fill + verificación) y luego recorta la
+pantalla LCD (verde): calcula su bounding box y la vuelve transparente con
+flood fill desde el centro de la pantalla. Si la detección falla, ajustá
+`isScreen` en `scripts/clean-assets.mjs`.
+
+## Uso
+
+La Game Boy se renderiza con CSS en `about.css` (`.about-photo-gameboy`):
+posición (sobre la foto), tamaño, rotación y sombra se ajustan ahí.

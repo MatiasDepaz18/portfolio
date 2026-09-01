@@ -3,15 +3,12 @@
     <h2 class="about-title">Sobre mí</h2>
 
     <div class="about-grid">
-      <!-- Foto -->
+      <!-- Foto (dentro de la pantalla de la Game Boy) -->
       <div class="about-photo">
-        <img
-          src="MyPhoto.webp"
-          alt="Matías Depaz, ingeniero en computación"
-          class="about-photo-img"
-          width="700"
-          height="900"
-        />
+        <div class="about-photo-gameboy" aria-hidden="true">
+          <img class="about-photo-gameboy-screen" src="MyPhoto.webp" alt="" />
+          <div class="about-photo-gameboy-body"></div>
+        </div>
         <div class="about-photo-meta">
           <app-badge variant="ink">ING. EN COMPUTACIÓN · UNT</app-badge>
         </div>

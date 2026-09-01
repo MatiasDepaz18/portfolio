@@ -47,15 +47,41 @@
   }
 }
 
-.about-photo-img {
-  display: block;
-  width: 100%;
+.about-photo {
   max-width: 20rem;
-  aspect-ratio: 7 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Game Boy: único contenido visual de la columna. La foto se recorta al
+   rect de la pantalla (detectado en scripts/clean-assets.mjs: 164x153
+   en x367,y72 del canvas 900x512) y queda DENTRO del LCD; el body
+   (pantalla transparente) va encima. */
+.about-photo-gameboy {
+  position: relative;
+  width: 230%;
+  aspect-ratio: 900 / 512;
+  pointer-events: none;
+}
+
+.about-photo-gameboy-screen {
+  position: absolute;
+  left: 40.8%;
+  top: 14.1%;
+  width: 18.2%;
+  height: 29.9%;
   object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--line-strong);
-  background: var(--bg-sunken);
+  border-radius: 2px;
+}
+
+.about-photo-gameboy-body {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/game/gameboy/gameboy-body.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
 }
 
 .about-photo-meta {

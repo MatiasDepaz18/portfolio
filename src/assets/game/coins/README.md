@@ -1,38 +1,35 @@
-# Coins - Sprite Sheet
+# Coins - Sprite
 
-Carpeta preparada para el sprite de las monedas del portfolio.
+Sprite real de la moneda del portfolio. Se usa en About (los 4 slots de
+metadata: "3+ AÑOS IT", "SOFTWARE", "AI / ML", "DATA") con el componente
+`app-coin`: levita en todo momento y se levanta al pasar el mouse (sin
+girar).
 
-## Cómo integrarlo
+## Archivos
 
-1. Dejá el sprite acá, por ejemplo: `coin-sprites.png`
-   (sugerencia: frames en fila, fondo transparente).
-2. Creá la definición en `src/app/game/sprites/` siguiendo el patrón de
-   `yoshi.sprites.ts`:
+- `coin.png`: sprite original subido (920x966). **Sin transparencia**:
+  incluye fondo blanco.
+- `coin-clean.png`: sprite con el fondo removido (generado). Es el que
+  usa el sitio.
 
-   ```ts
-   export const COIN_SHEET: SpriteSheet = {
-     url: 'assets/game/coins/coin-sprites.png',
-     sheetWidth: <ancho>,
-     sheetHeight: <alto>,
-     basePath: 'assets/game/coins',
-     defaultAnimation: 'spin',
-     animations: {
-       spin: {
-         fps: 8,
-         frames: [ /* f('spin', 1, x, y, w, h), ... */ ],
-       },
-     },
-   };
-   ```
+## Cómo limpiar el fondo
 
-3. Si el sheet tiene coordenadas, ejecutá el extractor (con los bboxes en
-   la definición). Si los frames ya vienen como PNG individuales, usá
-   `frame()` con `src` directos.
-4. Usalo:
+Los PNG de monedas no suelen traer transparencia. Si reemplazás
+`coin.png`, ejecutá:
 
-   ```html
-   <app-sprite-character [sheet]="COIN_SHEET" state="spin" />
-   ```
+```
+npm run clean:assets
+```
 
-Los PNG individuales extraídos se guardan acá mismo:
-`src/assets/game/coins/<anim>/NN.png`.
+(flood fill desde los bordes + verificación automática). Si la
+verificación falla, ajustá `threshold` en `scripts/clean-assets.mjs`.
+
+## Uso
+
+```html
+<app-coin label="SOFTWARE" />
+```
+
+El comportamiento (levitación + hover) vive en
+`src/app/components/shared/coin/coin.ts`, CSS puro, con fallback de
+reduced-motion.
