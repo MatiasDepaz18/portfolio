@@ -2,7 +2,7 @@
   id="skills"
   eyebrow="Power-Ups"
   title="Habilidades"
-  lede="Lo que uso para construir, ordenado por categoría. Cada power-up tiene su nota al hover."
+  lede="Lo que uso para construir, ordenado por categoría. Tocá la consola para verla en grande."
 >
   <div
     class="skills-stage"
@@ -14,7 +14,7 @@
     (keydown)="onKeydown($event)"
     #stage
   >
-    <div class="skills-viewport" #viewport>
+    <div class="skills-viewport" #viewport (click)="onViewportClick($event)">
       @for (cat of categories; track cat.id; let i = $index) {
         <article
           class="switch-slide"
@@ -22,71 +22,111 @@
           [attr.aria-hidden]="carouselReady() && active() !== i ? 'true' : null"
         >
           <div class="switch-body" [style.background-image]="'url(' + switchSprite + ')'"></div>
-          <div class="switch-screen">
-            <header class="screen-head">
-              <span class="screen-item" aria-hidden="true">
-                <ng-icon [name]="cat.icon" class="screen-icon" />
-              </span>
-              <div class="screen-titles">
-                <h3 class="screen-title">{{ cat.label }}</h3>
-                <p class="screen-tagline">{{ cat.tagline }}</p>
-              </div>
-            </header>
-            <ul class="screen-skills">
-              @for (skill of cat.skills; track skill.name) {
-                <li class="screen-chip" [title]="skill.note">
-                  @if (skill.logo) {
-                    <img
-                      [src]="logoUrl(skill.logo)"
-                      [alt]="skill.name"
-                      class="screen-logo"
-                      width="12"
-                      height="12"
-                      loading="lazy"
-                    />
-                  } @else {
-                    <ng-icon [name]="skill.icon ?? ''" class="screen-glyph" />
-                  }
-                  <span class="screen-name">{{ skill.name }}</span>
-                </li>
-              }
-            </ul>
-          </div>
+          <ng-container *ngTemplateOutlet="screenContent; context: { $implicit: cat }" />
         </article>
       }
     </div>
 
+    <ng-template #screenContent let-cat>
+      <div class="switch-screen">
+        <header class="screen-head">
+          <span class="screen-item" aria-hidden="true">
+            <ng-icon [name]="cat.icon" class="screen-icon" />
+          </span>
+          <div class="screen-titles">
+            <h3 class="screen-title">{{ cat.label }}</h3>
+            <p class="screen-tagline">{{ cat.tagline }}</p>
+          </div>
+        </header>
+        <ul class="screen-skills">
+          @for (skill of cat.skills; track skill.name) {
+            <li class="screen-chip" [title]="skill.note">
+              @if (skill.logo) {
+                <img
+                  [src]="logoUrl(skill.logo)"
+                  [alt]="skill.name"
+                  class="screen-logo"
+                  width="12"
+                  height="12"
+                  loading="lazy"
+                />
+              } @else {
+                <ng-icon [name]="skill.icon ?? ''" class="screen-glyph" />
+              }
+              <span class="screen-name">{{ skill.name }}</span>
+              <span class="screen-note">{{ skill.note }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    </ng-template>
+
+    <button
+      type="button"
+      class="skills-arrow skills-arrow--left pixel-corners"
+      (click)="go(-1)"
+      aria-label="Anterior"
+    >
+      <ng-icon name="phosphorCaretLeft" />
+    </button>
+    <button
+      type="button"
+      class="skills-arrow skills-arrow--right pixel-corners"
+      (click)="go(1)"
+      aria-label="Siguiente"
+    >
+      <ng-icon name="phosphorCaretRight" />
+    </button>
+
     <div class="skills-nav">
-      <button
-        type="button"
-        class="skills-arrow pixel-corners"
-        (click)="go(-1)"
-        [disabled]="active() === 0"
-        aria-label="Anterior"
-      >
-        <ng-icon name="phosphorCaretLeft" />
-      </button>
-      <div class="skills-dots" aria-label="Categorías">
+      <div class="skills-mushrooms" aria-label="Categorías">
         @for (cat of categories; track cat.id; let i = $index) {
           <button
             type="button"
-            class="skills-dot pixel-corners"
+            class="skills-mushroom"
             [class.is-active]="active() === i"
             [attr.aria-current]="active() === i ? 'true' : null"
             [attr.aria-label]="cat.label"
             (click)="goToSlide(i)"
-          ></button>
+          >
+            <img
+              class="mushroom-green"
+              [src]="mushroomGreen"
+              alt=""
+              width="48"
+              height="48"
+            />
+            <img
+              class="mushroom-red"
+              [src]="mushroomRed"
+              alt=""
+              width="48"
+              height="48"
+            />
+          </button>
         }
       </div>
-      <button
-        type="button"
-        class="skills-arrow pixel-corners"
-        (click)="go(1)"
-        [disabled]="active() === categories.length - 1"
-        aria-label="Siguiente"
-      >
-        <ng-icon name="phosphorCaretRight" />
-      </button>
     </div>
   </div>
+
+  @if (expanded()) {
+    <div class="skills-expanded" #expandedOverlay>
+      <div class="skills-expanded-backdrop" (click)="closeExpanded()"></div>
+      <button
+        type="button"
+        class="skills-expanded-close pixel-corners"
+        (click)="closeExpanded()"
+        #expandedClose
+        aria-label="Cerrar detalle"
+      >
+        <ng-icon name="phosphorX" />
+      </button>
+      <div class="skills-expanded-console" #expandedConsole>
+        <div class="switch-body" [style.background-image]="'url(' + switchSprite + ')'"></div>
+        <ng-container
+          *ngTemplateOutlet="screenContent; context: { $implicit: expandedCategory() }"
+        />
+      </div>
+    </div>
+  }
 </app-section-shell>

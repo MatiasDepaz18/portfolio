@@ -15,6 +15,7 @@
 .skills-stage {
   --slide-w: clamp(340px, 48vw, 600px);
   --skills-gap: 28px;
+  position: relative;
   margin-top: 2.75rem;
 }
 
@@ -23,6 +24,13 @@
   overflow: hidden;
   padding: 0.75rem 0 1.25rem;
   touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.skills-viewport.is-dragging {
+  cursor: grabbing;
 }
 
 /* Spacer in-flow: le da altura al viewport (los slides son absolutos). */
@@ -194,6 +202,11 @@
   text-overflow: ellipsis;
 }
 
+/* La nota de cada skill solo se muestra en la vista expandida. */
+.screen-note {
+  display: none;
+}
+
 /* ---------------------------- navegación ---------------------------- */
 
 .skills-nav {
@@ -205,10 +218,15 @@
 }
 
 .skills-arrow {
+  position: absolute;
+  /* Ocupa la altura completa de la consola: top = padding del viewport,
+     height = altura del slide (--slide-w * 350/824). */
+  top: 0.75rem;
+  height: calc(var(--slide-w) * 350 / 824);
+  z-index: 2;
   display: grid;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
   background: var(--bg-surface);
   border: 1px solid var(--line-strong);
   color: var(--ink-soft);
@@ -219,45 +237,189 @@
     transform 0.15s ease;
 }
 
-.skills-arrow:hover:not(:disabled) {
+.skills-arrow--left {
+  left: 0;
+}
+
+.skills-arrow--right {
+  right: 0;
+}
+
+.skills-arrow:active {
+  transform: scale(0.94);
+}
+
+/* En pantallas con hover (mouse): por defecto semi-transparentes en el
+   borde del carrusel y se revelan cuando el mouse pasa por encima. En
+   touch quedan siempre visibles (no hay hover). */
+@media (hover: hover) {
+  .skills-arrow {
+    opacity: 0.3;
+  }
+
+  .skills-arrow:hover {
+    opacity: 1;
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-surface));
+  }
+}
+
+.skills-mushrooms {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skills-mushroom {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.skills-mushroom img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.skills-mushroom .mushroom-red {
+  opacity: 0;
+  transform: scale(1.8);
+}
+
+.skills-mushroom.is-active .mushroom-green {
+  opacity: 0;
+}
+
+.skills-mushroom.is-active .mushroom-red {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .skills-mushroom:hover {
+    transform: scale(1.12);
+  }
+}
+
+/* ------------------- vista expandida (detalle) ------------------- */
+
+.skills-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.skills-expanded-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(6 8 7 / 0.78);
+  backdrop-filter: blur(2px);
+}
+
+.skills-expanded-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.skills-expanded-close:hover {
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
 }
 
-.skills-arrow:active:not(:disabled) {
+.skills-expanded-close:active {
   transform: scale(0.94);
 }
 
-.skills-arrow:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+.skills-expanded-console {
+  position: relative;
+  width: min(92vw, 880px);
+  aspect-ratio: 824 / 350;
+  will-change: transform;
 }
 
-.skills-dots {
-  display: flex;
-  gap: 0.6rem;
+/* Versión grande de la pantalla: texto completo, sin truncar. */
+.skills-expanded-console .switch-screen {
+  gap: 0.8rem;
 }
 
-.skills-dot {
-  width: 0.6rem;
-  height: 0.6rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--line-strong);
-  cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+.skills-expanded-console .screen-item {
+  width: 2.4rem;
+  height: 2.4rem;
 }
 
-.skills-dot:hover {
-  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+.skills-expanded-console .screen-icon {
+  font-size: 1.35rem;
 }
 
-.skills-dot.is-active {
-  background: var(--accent);
-  border-color: var(--accent);
-  transform: scale(1.3);
+.skills-expanded-console .screen-title {
+  font-size: clamp(10px, 2.2vw, 17px);
+  white-space: normal;
+}
+
+.skills-expanded-console .screen-tagline {
+  font-size: clamp(0.6rem, 1.3vw, 0.8rem);
+  white-space: normal;
+}
+
+.skills-expanded-console .screen-skills {
+  gap: 0.5rem;
+}
+
+.skills-expanded-console .screen-chip {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  font-size: clamp(0.7rem, 1.6vw, 0.95rem);
+  cursor: default;
+}
+
+.skills-expanded-console .screen-logo {
+  width: 18px;
+  height: 18px;
+}
+
+.skills-expanded-console .screen-glyph {
+  font-size: 1rem;
+}
+
+.skills-expanded-console .screen-name {
+  white-space: normal;
+}
+
+.skills-expanded-console .screen-note {
+  display: block;
+  width: 100%;
+  font-size: 0.72em;
+  font-weight: 400;
+  opacity: 0.72;
 }
 
 /* ---------------------------- mobile ---------------------------- */
