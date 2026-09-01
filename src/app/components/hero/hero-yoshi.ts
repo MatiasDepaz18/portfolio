@@ -1,4 +1,5 @@
-import { Component, ElementRef, afterNextRender, viewChild, type OnDestroy } from '@angular/core';
+import { Component, ElementRef, Inject, PLATFORM_ID, afterNextRender, viewChild, type OnDestroy } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { GsapService } from '../../services/gsap.service';
 import { YoshiCharacter } from '../../game/sprites/yoshi-character';
 import { HeroTongue, TONGUE_SEGMENT_WIDTH_PX } from './hero-tongue';
@@ -6,9 +7,14 @@ import { HeroTongue, TONGUE_SEGMENT_WIDTH_PX } from './hero-tongue';
 /**
  * Escena de Yoshi en el hero (se ejecuta UNA vez, al cargar):
  *
- *   1. El hero-grid está oculto a la derecha (clase hero-scene-hidden
- *      en el Hero: translateX(100vw) + opacity 0, solo en cliente
- *      no-reduced-motion).
+ *   0. La CORTINA (hero-curtain, estilo Mario Bros) cubre el hero desde
+ *      el render inicial: es la máscara de carga, no se ve ningún estado
+ *      intermedio. Con reduced-motion la cortina no existe (CSS) y el
+ *      contenido es visible de entrada.
+ *   1. Al arrancar, GSAP oculta el hero-grid a la derecha (x:
+ *      innerWidth, opacity 0, scale 1.25) y la cortina se abre hacia
+ *      arriba (yPercent -100, 0.65s) mientras Yoshi ya viene caminando
+ *      por detrás, emergiendo a mitad de apertura.
  *   2. Yoshi entra CAMINANDO (walk) mientras se desliza hacia su lugar
  *      en el medio-izquierdo del hero. Su sombra de piso aparece con él.
  *   3. Al llegar hace una VOLTERETA (flip, con arco de GSAP); la sombra
@@ -125,7 +131,16 @@ export class HeroYoshi implements OnDestroy {
   private ctx: { revert: () => void } | null = null;
   private cleanup: (() => void) | null = null;
 
-  constructor(private gsapService: GsapService) {
+  constructor(
+    private gsapService: GsapService,
+    @Inject(PLATFORM_ID) private platformId: object,
+  ) {
+    // Pre-carga GSAP apenas se construye el componente (solo cliente):
+    // la descarga del chunk se solapa con la hidratación en vez de
+    // esperarla dentro de la escena.
+    if (isPlatformBrowser(this.platformId)) {
+      void this.gsapService.get();
+    }
     afterNextRender(() => {
       // Guard: jsdom/test envs no tienen matchMedia ni necesitan GSAP.
       if (typeof window.matchMedia !== 'function') {
@@ -152,12 +167,13 @@ export class HeroYoshi implements OnDestroy {
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         const heroGrid = document.querySelector<HTMLElement>('.hero-grid');
-        if (!heroGrid) {
+        const curtain = document.querySelector<HTMLElement>('.hero-curtain');
+        if (!heroGrid || !curtain) {
           return;
         }
         // La lengua cruza todo el hero (el exceso se corta en overflow hidden).
         tongue.build(Math.ceil(window.innerWidth / TONGUE_SEGMENT_WIDTH_PX) + 1);
-        void this.runScene(gsap, heroGrid, stageEl, tongueWrapEl, shadowEl, yoshi);
+        void this.runScene(gsap, heroGrid, curtain, stageEl, tongueWrapEl, shadowEl, yoshi);
       });
     });
 
@@ -174,6 +190,7 @@ export class HeroYoshi implements OnDestroy {
   private async runScene(
     gsap: typeof import('gsap').gsap,
     heroGrid: HTMLElement,
+    curtain: HTMLElement,
     stageEl: HTMLDivElement,
     tongueWrapEl: HTMLDivElement,
     shadowEl: HTMLDivElement,
@@ -202,14 +219,17 @@ export class HeroYoshi implements OnDestroy {
     gsap.set(tongueWrapEl, { opacity: 0 });
     gsap.set(shadowEl, { opacity: 0, scaleX: 1 });
     gsap.set(segments, { scaleX: 0, transformOrigin: 'left center' });
-    // El hero-grid ya está oculto por la clase hero-scene-hidden (CSS).
-    // Acá fijamos el estado inline que anima la succión: entra desde la
-    // derecha a escala 1.25 y se acomoda en su lugar (x 0, scale 1).
+    // El hero-grid está visible hasta acá: la escena arranca ocultándolo
+    // a la derecha (x: innerWidth, scale 1.25) y la cortina se abre hacia
+    // arriba mientras Yoshi ya viene caminando por detrás (emerge a mitad
+    // de apertura). La cortina es la máscara de carga: cubre el hero
+    // desde el render inicial y la abre GSAP recién acá.
     gsap.set(heroGrid, { x: window.innerWidth, scale: 1.25, opacity: 0 });
 
-    const tl = gsap.timeline({ defaults: { ease: 'power2.out' }, delay: 0.5 });
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
 
-    tl.to(stageEl, { x: 0, opacity: 1, duration: 0.6 })
+    tl.to(curtain, { yPercent: -100, duration: 0.65, ease: 'power2.inOut' }, 0)
+      .to(stageEl, { x: 0, opacity: 1, duration: 0.6 }, '<0.25')
       .to(shadowEl, { opacity: 1, duration: 0.3 }, '<0.15')
       // Voltereta al llegar: flip + arco; la sombra se achica en el aire.
       .call(() => yoshi.setState('flip'), undefined, '>-0.05')

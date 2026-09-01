@@ -33,14 +33,6 @@
   align-items: center;
 }
 
-/* El contenido arranca escondido a la derecha para la escena de Yoshi
-   (la clase se aplica SOLO en cliente no-reduced-motion). GSAP anima
-   x/opacity inline cuando la succión lo trae. */
-.hero-scene-hidden {
-  transform: translateX(100vw);
-  opacity: 0;
-}
-
 @media (min-width: 768px) {
   .hero-grid {
     padding-inline: 1.5rem;
@@ -208,6 +200,39 @@
   left: calc(50% + 10.75rem);
 }
 
+/* ---------------- cortina ---------------- */
+
+/* Máscara de carga estilo Mario Bros: cubre el hero desde el render
+   inicial y se abre hacia arriba cuando GSAP arranca la escena. */
+.hero-curtain {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, #b32727 0 26px, #8e1b1b 26px 34px, #c22c2c 34px 44px);
+}
+
+/* Varilla superior (cilindro oscuro) + festón crema inferior */
+.hero-curtain::before,
+.hero-curtain::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.hero-curtain::before {
+  top: 0;
+  height: 0.7rem;
+  background: linear-gradient(180deg, #3a2a1a, #241708);
+}
+
+.hero-curtain::after {
+  bottom: 0;
+  height: 1.5rem;
+  background: radial-gradient(circle at 50% 0, #f2e3c2 0 25px, #0000 26px) bottom / 52px 100% repeat-x;
+}
+
 @media (max-width: 1023px) {
   .hero-block {
     left: auto;
@@ -274,5 +299,9 @@
 @media (prefers-reduced-motion: reduce) {
   .hero-cursor {
     animation: none;
+  }
+
+  .hero-curtain {
+    display: none;
   }
 }

@@ -1,7 +1,8 @@
 /**
- * PROYECTOS - Cartuchos.
+ * PROYECTOS - Cartuchos SNES.
  * Agregá tus proyectos reales copiando el bloque comentado al final.
- * colorway: 'green' | 'ink' | 'gold' (etiqueta del cartucho).
+ * image: screenshot de la landing, en src/assets/projects/<slug>.png
+ * (ver README de esa carpeta). Sin image el frente muestra el title screen.
  */
 export interface Project {
   title: string;
@@ -12,7 +13,7 @@ export interface Project {
   repoUrl: string;
   demoUrl?: string;
   status?: 'SHIPPED' | 'EN CURSO';
-  colorway: 'green' | 'ink' | 'gold';
+  image?: string;
 }
 
 export const projects: Project[] = [
@@ -26,8 +27,9 @@ export const projects: Project[] = [
       'Diseño y motores de interacción propios: GSAP para la narrativa, sistema de tokens propio y animaciones físicas sutiles.',
     stack: ['Angular', 'TypeScript', 'Tailwind', 'GSAP', 'SSR'],
     repoUrl: 'https://github.com/MatiasDepaz18/portfolio',
+    image: 'assets/projects/Super_Mario_Bros._Logo.svg',
     status: 'EN CURSO',
-    colorway: 'green',
+    // image: 'assets/projects/portfolio.png',
   },
   /* TODO: copiá este bloque para agregar tu próximo proyecto
   {
@@ -39,7 +41,7 @@ export const projects: Project[] = [
     repoUrl: 'https://github.com/MatiasDepaz18/nombre-del-repo',
     demoUrl: 'https://demo.example.com',
     status: 'SHIPPED',
-    colorway: 'gold',
+    image: 'assets/projects/nombre.png',
   },
   */
 ];

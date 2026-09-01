@@ -88,6 +88,7 @@ export class Skills implements OnDestroy {
 
   private stage = viewChild<ElementRef<HTMLElement>>('stage');
   private viewport = viewChild<ElementRef<HTMLElement>>('viewport');
+  private swipeHint = viewChild<ElementRef<HTMLElement>>('swipeHint');
   private expandedOverlay = viewChild<ElementRef<HTMLElement>>('expandedOverlay');
   private expandedConsole = viewChild<ElementRef<HTMLElement>>('expandedConsole');
   private expandedClose = viewChild<ElementRef<HTMLElement>>('expandedClose');
@@ -125,6 +126,11 @@ export class Skills implements OnDestroy {
     this.goToSlide(this.active() + dir);
   }
 
+  /** Al navegar el hint de swipe deja de tener sentido: se oculta. */
+  private dismissSwipeHint(): void {
+    this.swipeHint()?.nativeElement.classList.add('is-hidden');
+  }
+
   goToSlide(index: number): void {
     const count = this.categories.length;
     const target = wrapIndex(index, count);
@@ -132,6 +138,7 @@ export class Skills implements OnDestroy {
     if (target === from) {
       return;
     }
+    this.dismissSwipeHint();
     this.cancelChain();
     let steps = wrapIndex(target - from, count);
     if (steps > count / 2) {

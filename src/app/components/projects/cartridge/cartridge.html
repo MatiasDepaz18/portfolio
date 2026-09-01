@@ -1,53 +1,89 @@
-<article class="cart cart-{{ project().colorway }} {{ rotateClass(index()) }}">
-  <!-- Etiqueta -->
-  <div class="cart-label pixel-corners">
-    <div class="cart-label-top">
-      <span class="cart-brand">MATIAS DEPAZ</span>
-      @if (project().status) {
-        <app-badge [variant]="project().status === 'SHIPPED' ? 'accent' : 'gold'">
-          {{ project().status }}
-        </app-badge>
+<article
+  class="cart {{ rotateClass(index()) }}"
+  [class.is-flipped]="flipped()"
+  tabindex="0"
+  role="button"
+  [attr.aria-label]="'Proyecto ' + project().title + '. Tocá para voltear el cartucho'"
+  (click)="toggleFlip($event)"
+  (keydown)="onKeydown($event)"
+>
+  <div class="cart-inner">
+    <!-- Etiqueta frontal: label azul + screenshot + título -->
+    <div class="cart-face cart-front">
+      <div class="cart-front-top">
+        <span class="cart-brand">MATIAS DEPAZ</span>
+        @if (project().status) {
+          <app-badge [variant]="project().status === 'SHIPPED' ? 'accent' : 'gold'">
+            {{ project().status }}
+          </app-badge>
+        }
+      </div>
+
+      @if (project().image) {
+        <div class="cart-art">
+          <img
+            class="cart-art-img"
+            [src]="project().image"
+            [alt]="project().title"
+            loading="lazy"
+          />
+        </div>
+        <div class="cart-title-band">
+          <p class="cart-title-text">
+            {{ project().title }}<span class="cart-cursor">_</span>
+          </p>
+          <div class="cart-title-divider"></div>
+          <p class="cart-title-stack">{{ project().stack.join(' · ') }}</p>
+        </div>
+      } @else {
+        <div class="cart-title-panel">
+          <p class="cart-title-text">
+            {{ project().title }}<span class="cart-cursor">_</span>
+          </p>
+          <div class="cart-title-divider"></div>
+          <p class="cart-title-stack">{{ project().stack.join(' · ') }}</p>
+        </div>
       }
     </div>
 
-    <!-- Pantalla de título (abstracta, no es un screenshot) -->
-    <div class="cart-screen" aria-hidden="true">
-      <p class="cart-screen-title">{{ project().title }}<span class="cart-cursor">_</span></p>
-      <div class="cart-screen-divider"></div>
-      <p class="cart-screen-stack">{{ project().stack.join(' · ') }}</p>
+    <!-- Reverso: plástico gris + placa de datos -->
+    <div class="cart-face cart-back">
+      <span class="cart-back-brand">MATIAS DEPAZ™ ENTERTAINMENT SYSTEM</span>
+
+      <div class="cart-well">
+        <div class="cart-well-head">
+          <span class="cart-well-title">{{ project().title }}</span>
+          <span class="cart-well-stack">{{ project().stack.join(' · ') }}</span>
+        </div>
+
+        <p class="cart-well-desc">{{ project().description }}</p>
+
+        <dl class="cart-facts">
+          <div class="cart-fact">
+            <dt class="cart-fact-label">Problema</dt>
+            <dd class="cart-fact-text">{{ project().problem }}</dd>
+          </div>
+          <div class="cart-fact">
+            <dt class="cart-fact-label">Solución</dt>
+            <dd class="cart-fact-text">{{ project().solution }}</dd>
+          </div>
+        </dl>
+
+        <div class="cart-actions">
+          <app-game-button variant="ghost" [href]="project().repoUrl" [external]="true">
+            <ng-icon name="phosphorGithubLogo" />
+            Código
+          </app-game-button>
+          @if (project().demoUrl) {
+            <app-game-button variant="primary" [href]="project().demoUrl" [external]="true">
+              Demo
+              <ng-icon name="phosphorArrowUpRight" />
+            </app-game-button>
+          }
+        </div>
+      </div>
+
+      <span class="cart-back-copy">© 2026 MATIAS DEPAZ · TODOS LOS NIVELES RESERVADOS</span>
     </div>
   </div>
-
-  <!-- Cuerpo -->
-  <div class="cart-body">
-    <h3 class="cart-title">{{ project().title }}</h3>
-    <p class="cart-desc">{{ project().description }}</p>
-
-    <dl class="cart-facts">
-      <div class="cart-fact">
-        <dt class="cart-fact-label">Problema</dt>
-        <dd class="cart-fact-text">{{ project().problem }}</dd>
-      </div>
-      <div class="cart-fact">
-        <dt class="cart-fact-label">Solución</dt>
-        <dd class="cart-fact-text">{{ project().solution }}</dd>
-      </div>
-    </dl>
-
-    <div class="cart-actions">
-      <app-game-button variant="ghost" [href]="project().repoUrl" [external]="true">
-        <ng-icon name="phosphorGithubLogo" />
-        Código
-      </app-game-button>
-      @if (project().demoUrl) {
-        <app-game-button [href]="project().demoUrl" [external]="true">
-          Demo
-          <ng-icon name="phosphorArrowUpRight" />
-        </app-game-button>
-      }
-    </div>
-  </div>
-
-  <!-- Conector inferior -->
-  <div class="cart-connector" aria-hidden="true"></div>
 </article>

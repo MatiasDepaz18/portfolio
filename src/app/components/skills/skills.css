@@ -209,6 +209,26 @@
 
 /* ---------------------------- navegación ---------------------------- */
 
+/* Hint de swipe (solo mobile): chevrones sobre los costados de la
+   consola que pulsan y se desvanecen solos a los ~4s o al navegar. */
+.skills-swipe-hint {
+  display: none;
+  position: absolute;
+  top: 1.5rem;
+  left: calc(50% - var(--slide-w) / 2);
+  width: var(--slide-w);
+  height: calc(var(--slide-w) * 350 / 824);
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.skills-swipe-hint.is-hidden {
+  animation: none;
+  opacity: 0;
+}
+
 .skills-nav {
   display: flex;
   align-items: center;
@@ -365,9 +385,51 @@
   will-change: transform;
 }
 
-/* Versión grande de la pantalla: texto completo, sin truncar. */
+/* Versión grande de la pantalla: texto completo, sin truncar. El header
+   queda fijo y solo scrollea la lista de chips (flex:1 + min-height:0). */
 .skills-expanded-console .switch-screen {
   gap: 0.8rem;
+}
+
+.skills-expanded-console .screen-skills {
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.4rem;
+}
+
+/* Fade inferior: sugiere que hay más contenido por debajo. */
+.skills-expanded-console .switch-screen::after {
+  content: '';
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  bottom: 0;
+  height: 14%;
+  pointer-events: none;
+  background: linear-gradient(to top, #2f3430 0%, rgb(47 52 48 / 0) 100%);
+}
+
+/* Scrollbar fina acorde al vidrio de la consola. */
+.skills-expanded-console .screen-skills {
+  scrollbar-width: thin;
+  scrollbar-color: var(--screen-accent) transparent;
+}
+
+.skills-expanded-console .screen-skills::-webkit-scrollbar {
+  width: 6px;
+}
+
+.skills-expanded-console .screen-skills::-webkit-scrollbar-thumb {
+  background: var(--screen-accent);
+  border-radius: 3px;
+}
+
+.skills-expanded-console .screen-skills::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .skills-expanded-console .screen-item {
@@ -387,10 +449,6 @@
 .skills-expanded-console .screen-tagline {
   font-size: clamp(0.6rem, 1.3vw, 0.8rem);
   white-space: normal;
-}
-
-.skills-expanded-console .screen-skills {
-  gap: 0.5rem;
 }
 
 .skills-expanded-console .screen-chip {
@@ -430,6 +488,30 @@
     --skills-gap: 16px;
   }
 
+  /* En mobile se navega con swipe y honguitos: las flechas laterales
+     quedan fuera para no achicar la consola. */
+  .skills-arrow {
+    display: none;
+  }
+
+  .skills-swipe-hint {
+    display: flex;
+    animation: swipe-hint-fade 3.8s ease-in-out forwards;
+  }
+
+  .swipe-chevron {
+    font-size: 1.1rem;
+    color: var(--accent);
+  }
+
+  .swipe-chevron--left {
+    animation: swipe-hint-pulse-left 1s ease-in-out 3 both;
+  }
+
+  .swipe-chevron--right {
+    animation: swipe-hint-pulse-right 1s ease-in-out 3 both;
+  }
+
   .switch-screen {
     padding: 3% 3% 2%;
     gap: 0.35rem;
@@ -455,9 +537,49 @@
   }
 }
 
+/* ----------------------- hint de swipe: keyframes ----------------------- */
+
+@keyframes swipe-hint-fade {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes swipe-hint-pulse-left {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(-10px);
+    opacity: 1;
+  }
+}
+
+@keyframes swipe-hint-pulse-right {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(10px);
+    opacity: 1;
+  }
+}
+
 /* ---------------------- reduced motion: grid ---------------------- */
 
 @media (prefers-reduced-motion: reduce) {
+  .skills-swipe-hint {
+    display: none;
+  }
+
   .skills-viewport {
     overflow: visible;
     padding: 0;
