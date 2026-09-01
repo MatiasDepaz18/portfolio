@@ -64,6 +64,13 @@ export function generateTongueSegments(count: number): TongueSegment[] {
       image-rendering: pixelated;
       transform-origin: left center;
     }
+
+    /* Solape de 2px entre segmentos: con zoom ≠ 100% (o DPR fraccional)
+       cada segmento redondea a píxeles distintos y quedan cortes de ~1px;
+       el solape los tapa sin afectar el layout ni la animación. */
+    .hero-tongue-segment + .hero-tongue-segment {
+      margin-left: -2px;
+    }
   `,
 })
 export class HeroTongue {

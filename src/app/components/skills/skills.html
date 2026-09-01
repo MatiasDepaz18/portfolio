@@ -4,40 +4,89 @@
   title="Habilidades"
   lede="Lo que uso para construir, ordenado por categoría. Cada power-up tiene su nota al hover."
 >
-  <div class="skills-grid">
-    @for (cat of categories; track cat.id) {
-      <article class="tray" appReveal [appRevealDelay]="$index * 80">
-        <header class="tray-head">
-          <span class="tray-item" aria-hidden="true">
-            <ng-icon [name]="cat.icon" class="tray-icon" />
-          </span>
-          <div>
-            <h3 class="tray-title">{{ cat.label }}</h3>
-            <p class="tray-tagline">{{ cat.tagline }}</p>
-          </div>
-        </header>
-
-        <ul class="tray-skills">
-          @for (skill of cat.skills; track skill.name) {
-            <li class="skill-chip">
-              @if (skill.logo) {
-                <img
-                  [src]="logoUrl(skill.logo)"
-                  [alt]="skill.name"
-                  class="skill-logo"
-                  width="20"
-                  height="20"
-                  loading="lazy"
-                />
-              } @else {
-                <ng-icon [name]="skill.icon ?? ''" class="skill-glyph" />
+  <div
+    class="skills-stage"
+    appReveal
+    tabindex="0"
+    role="group"
+    aria-roledescription="carrusel"
+    aria-label="Habilidades por categoría"
+    (keydown)="onKeydown($event)"
+    #stage
+  >
+    <div class="skills-viewport" #viewport>
+      @for (cat of categories; track cat.id; let i = $index) {
+        <article
+          class="switch-slide"
+          [attr.aria-label]="cat.label"
+          [attr.aria-hidden]="carouselReady() && active() !== i ? 'true' : null"
+        >
+          <div class="switch-body" [style.background-image]="'url(' + switchSprite + ')'"></div>
+          <div class="switch-screen">
+            <header class="screen-head">
+              <span class="screen-item" aria-hidden="true">
+                <ng-icon [name]="cat.icon" class="screen-icon" />
+              </span>
+              <div class="screen-titles">
+                <h3 class="screen-title">{{ cat.label }}</h3>
+                <p class="screen-tagline">{{ cat.tagline }}</p>
+              </div>
+            </header>
+            <ul class="screen-skills">
+              @for (skill of cat.skills; track skill.name) {
+                <li class="screen-chip" [title]="skill.note">
+                  @if (skill.logo) {
+                    <img
+                      [src]="logoUrl(skill.logo)"
+                      [alt]="skill.name"
+                      class="screen-logo"
+                      width="12"
+                      height="12"
+                      loading="lazy"
+                    />
+                  } @else {
+                    <ng-icon [name]="skill.icon ?? ''" class="screen-glyph" />
+                  }
+                  <span class="screen-name">{{ skill.name }}</span>
+                </li>
               }
-              <span class="skill-name">{{ skill.name }}</span>
-              <span class="skill-note">{{ skill.note }}</span>
-            </li>
-          }
-        </ul>
-      </article>
-    }
+            </ul>
+          </div>
+        </article>
+      }
+    </div>
+
+    <div class="skills-nav">
+      <button
+        type="button"
+        class="skills-arrow pixel-corners"
+        (click)="go(-1)"
+        [disabled]="active() === 0"
+        aria-label="Anterior"
+      >
+        <ng-icon name="phosphorCaretLeft" />
+      </button>
+      <div class="skills-dots" aria-label="Categorías">
+        @for (cat of categories; track cat.id; let i = $index) {
+          <button
+            type="button"
+            class="skills-dot pixel-corners"
+            [class.is-active]="active() === i"
+            [attr.aria-current]="active() === i ? 'true' : null"
+            [attr.aria-label]="cat.label"
+            (click)="goToSlide(i)"
+          ></button>
+        }
+      </div>
+      <button
+        type="button"
+        class="skills-arrow pixel-corners"
+        (click)="go(1)"
+        [disabled]="active() === categories.length - 1"
+        aria-label="Siguiente"
+      >
+        <ng-icon name="phosphorCaretRight" />
+      </button>
+    </div>
   </div>
 </app-section-shell>

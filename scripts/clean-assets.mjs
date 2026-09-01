@@ -1,15 +1,21 @@
 #!/usr/bin/env node
 /**
- * Limpia el fondo claro de los assets de coins y gameboy.
+ * Limpia el fondo de los assets de coins, gameboy y switch.
  *
  * Los PNG subidos (coin.png, gameboy.png) no tienen transparencia: el
- * fondo blanco/plateado viene incluido. Este script hace un flood fill
- * desde los bordes del canvas y vuelve transparente todo lo que esté
- * cerca del color de las esquinas (el fondo), dejando el objeto intacto.
+ * fondo viene incluido. Este script hace un flood fill desde los bordes
+ * del canvas y vuelve transparente todo lo que esté cerca del color de
+ * las esquinas (el fondo), dejando el objeto intacto.
+ *
+ * La switch (switch.png, convertido desde el webp HD) ya trae fondo
+ * transparente: acá solo se le recorta la pantalla (vidrio gris plano)
+ * para que el contenido de Habilidades se vea a través.
  *
  * Uso: npm run clean:assets
  * Salidas: src/assets/game/coins/coin-clean.png
  *          src/assets/game/gameboy/gameboy-clean.png
+ *          src/assets/game/gameboy/gameboy-body.png
+ *          src/assets/game/switch/switch-body.png
  * No modifica los originales.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -60,14 +66,17 @@ function decodePng(path) {
   };
   const plte = chunks.find((c) => c.type === 'PLTE')?.data ?? null;
   const trns = chunks.find((c) => c.type === 'tRNS')?.data ?? null;
+  // Bytes por píxel: los filtros PNG (Sub/Average/Paeth) predicen contra
+  // el píxel anterior, o sea `bpp` bytes a la izquierda (no 1).
+  const bpp = Math.max(1, channels);
   for (let y = 0; y < height; y++) {
     const filter = raw[y * (rowBytes + 1)];
     const line = raw.subarray(y * (rowBytes + 1) + 1, (y + 1) * (rowBytes + 1));
     const cur = Buffer.alloc(rowBytes);
     for (let x = 0; x < rowBytes; x++) {
-      const a = x >= 1 ? cur[x - 1] : 0,
+      const a = x >= bpp ? cur[x - bpp] : 0,
         b = prev[x],
-        c = x >= 1 ? prev[x - 1] : 0;
+        c = x >= bpp ? prev[x - bpp] : 0;
       let v = line[x];
       if (filter === 1) v = (v + a) & 0xff;
       else if (filter === 2) v = (v + b) & 0xff;
@@ -270,24 +279,64 @@ const JOBS = [
   },
 ];
 
-/* ---------------- recorte de la pantalla de la gameboy ---------------- */
+/* ---------------- pantalla de la switch ---------------- */
 
 /**
- * Recorta la pantalla LCD (verde) de la gameboy limpia: genera un sprite
- * "body" con la pantalla transparente (para que la foto de About se vea
- * a través de la pantalla, como el juego que ve el jugador).
+ * La switch HD (switch.png, 824x350) ya viene con fondo transparente:
+ * acá solo se le recorta la pantalla. El vidrio es gris plano (51,51,51)
+ * y el rect se mide del sprite (marco negro alrededor). Se verifica que
+ * el interior sea vidrio antes de cortar.
  */
-function cutScreen({ width: W, height: H, rgba }, outPath) {
-  const isScreen = (x, y) => {
-    const o = (y * W + x) * 4;
-    const r = rgba[o],
-      g = rgba[o + 1],
-      b = rgba[o + 2];
-    if (rgba[o + 3] < 100) return false;
-    // Verde LCD: r ≈ g, b claramente menor.
-    return Math.abs(r - g) < 24 && b < r * 0.62 && r > 60;
-  };
+const SWITCH_JOB = {
+  name: 'switch',
+  src: join(ROOT, 'src/assets/game/switch/switch.png'),
+  out: join(ROOT, 'src/assets/game/switch/switch-body.png'),
+  screen: { x: 148, y: 29, w: 527, h: 296 },
+};
 
+/**
+ * Vuelve transparente el rect de pantalla. Verifica antes que al menos
+ * el 90% de los píxeles opacos del rect sea vidrio (gris 51,51,51).
+ */
+function clearSwitchScreen({ width: W, height: H, rgba }, rect) {
+  const { x, y, w, h } = rect;
+  if (x < 0 || y < 0 || x + w > W || y + h > H) {
+    return { ok: false, why: `rect ${w}x${h} fuera del sprite ${W}x${H}` };
+  }
+  let glass = 0;
+  let total = 0;
+  for (let py = y; py < y + h; py++) {
+    for (let px = x; px < x + w; px++) {
+      const o = (py * W + px) * 4;
+      if (rgba[o + 3] < 100) continue;
+      total++;
+      const r = rgba[o],
+        g = rgba[o + 1],
+        b = rgba[o + 2];
+      if (Math.abs(r - 51) < 8 && Math.abs(g - 51) < 8 && Math.abs(b - 51) < 8) glass++;
+    }
+  }
+  const ratio = glass / Math.max(1, total);
+  if (ratio < 0.9) {
+    return { ok: false, why: `solo ${(ratio * 100).toFixed(0)}% del rect es vidrio` };
+  }
+  for (let py = y; py < y + h; py++) {
+    for (let px = x; px < x + w; px++) {
+      const o = (py * W + px) * 4;
+      rgba[o + 3] = 0;
+    }
+  }
+  return { ok: true };
+}
+
+/* ---------------- recorte de pantalla (gameboy y switch) ---------------- */
+
+/**
+ * Recorta la pantalla de un sprite limpio: genera un sprite "body" con
+ * la pantalla transparente (para que el contenido de la sección se vea
+ * a través de la pantalla). El predicado decide qué es pantalla.
+ */
+function cutScreen({ width: W, height: H, rgba }, outPath, isScreen) {
   // Bounding box de los píxeles de pantalla.
   let minX = W,
     maxX = -1,
@@ -307,7 +356,7 @@ function cutScreen({ width: W, height: H, rgba }, outPath) {
     return { rect: null };
   }
 
-  // Flood fill desde el centro de la pantalla: solo la zona verde continua.
+  // Flood fill desde el centro de la pantalla: solo la zona continua.
   const removed = new Uint8Array(W * H);
   const stack = [[Math.floor((minX + maxX) / 2), Math.floor((minY + maxY) / 2)]];
   while (stack.length) {
@@ -344,7 +393,20 @@ for (const job of JOBS) {
   console.log(`  ✔ ${job.out}`);
 
   if (job.name === 'gameboy') {
-    const { rect } = cutScreen(cleaned, join(ROOT, 'src/assets/game/gameboy/gameboy-body.png'));
+    // Verde LCD: r ≈ g, b claramente menor.
+    const isGameboyScreen = (x, y) => {
+      const o = (y * cleaned.width + x) * 4;
+      const r = cleaned.rgba[o],
+        g = cleaned.rgba[o + 1],
+        b = cleaned.rgba[o + 2];
+      if (cleaned.rgba[o + 3] < 100) return false;
+      return Math.abs(r - g) < 24 && b < r * 0.62 && r > 60;
+    };
+    const { rect } = cutScreen(
+      cleaned,
+      join(ROOT, 'src/assets/game/gameboy/gameboy-body.png'),
+      isGameboyScreen,
+    );
     if (rect) {
       screenRects.gameboy = rect;
       console.log(
@@ -357,7 +419,26 @@ for (const job of JOBS) {
   }
 }
 
+/* La switch no pasa por removeBackground (ya tiene alpha limpio):
+   se decodifica directo y se le recorta la pantalla. */
+console.log(`\nProcesando ${SWITCH_JOB.name}...`);
+const switchImg = decodePng(SWITCH_JOB.src);
+const { ok, why } = clearSwitchScreen(switchImg, SWITCH_JOB.screen);
+if (ok) {
+  mkdirSync(dirname(SWITCH_JOB.out), { recursive: true });
+  writeFileSync(SWITCH_JOB.out, encodePng(switchImg.width, switchImg.height, switchImg.rgba));
+  screenRects.switch = SWITCH_JOB.screen;
+  console.log(
+    `  ✔ switch-body.png (${switchImg.width}x${switchImg.height}, pantalla ${SWITCH_JOB.screen.w}x${SWITCH_JOB.screen.h} en x${SWITCH_JOB.screen.x},y${SWITCH_JOB.screen.y})`,
+  );
+} else {
+  failed = true;
+  console.error(`  ✘ switch: ${why}. Ajustar SWITCH_JOB.screen en clean-assets.mjs.`);
+}
+
 if (failed) {
   process.exit(1);
 }
-console.log(`\nLimpieza OK. Pantalla de gameboy: ${JSON.stringify(screenRects.gameboy)}`);
+console.log(
+  `\nLimpieza OK. Pantallas: gameboy ${JSON.stringify(screenRects.gameboy)}, switch ${JSON.stringify(screenRects.switch)}`,
+);
