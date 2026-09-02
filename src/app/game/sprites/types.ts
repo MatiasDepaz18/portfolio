@@ -50,7 +50,7 @@ export interface SpriteAnimation {
    * - 90 : giro horario (el contenido arriba pasa a la derecha)
    * - 270: giro antihorario (el contenido arriba pasa a la izquierda)
    */
-  rotate?: 90 | 270;
+  rotate?: 90 | 270 | 45;
 }
 
 export interface SpriteSheet {

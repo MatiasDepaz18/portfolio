@@ -9,10 +9,6 @@
   margin-top: 3.25rem;
 }
 
-.course-line {
-  display: none;
-}
-
 .course-nodes {
   display: grid;
   grid-template-columns: 1fr;
@@ -90,44 +86,15 @@
   background: var(--accent);
 }
 
-.course-start {
-  display: none;
-}
-
-.course-flag {
-  display: none;
-}
-
 .course-stem {
   display: none;
 }
 
-.course-head {
-  display: none;
-}
-
-/* ============ desktop: línea horizontal + caminata ============ */
+/* ============ desktop: tallos ============ */
 
 @media (min-width: 768px) {
   .course {
     padding-bottom: 4.5rem;
-  }
-
-  .course-line {
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 1.5rem;
-    height: 3px;
-    background: var(--line-strong);
-  }
-
-  .course-fill {
-    display: block;
-    height: 100%;
-    background: var(--accent);
-    transform-origin: left center;
   }
 
   .course-nodes {
@@ -154,41 +121,24 @@
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent);
   }
 
-  .course-start {
-    display: block;
-    position: absolute;
-    left: 0;
-    bottom: -0.1rem;
-    font-family: var(--font-pixel);
-    font-size: 8px;
-    letter-spacing: 0.12em;
-    color: var(--ink-dim);
-    background: var(--bg-base);
-    padding: 0.15rem 0.4rem;
-  }
-
-  .course-flag {
-    display: block;
-    position: absolute;
-    right: 0;
-    bottom: -1.4rem;
-    transform-origin: bottom center;
-    animation: flag-sway 3.4s ease-in-out infinite;
-  }
-
-  /* Tallo de la Piraña: el tallo 02 (start) está estático a la
-     izquierda; los tallos 01 se van creando con el scroll (opacidad por
-     pieza, posiciones en la timeline de TS). Sin GSAP (reduced motion)
-     quedan todos visibles. */
+  /* Tallo de la Piraña: fila de tallos 01 que se van creando con el
+     scroll (opacidad por pieza, posiciones en la timeline de TS). Sin
+     GSAP (reduced motion) quedan todos visibles. */
   .course-stem {
     /* TUNEO MANUAL de los tallos 01:
        --stem-piece-w: ancho de cada tallo en px (tamaño de la planta).
        --stem-pitch: separación entre tallos en px. Más chico = más
          juntos (con --stem-pitch < ancho de la planta se superponen).
+       --stem-reveal-lead: px ANTES de que la ola de revelado llegue
+         aparece el tallo.
+       --stem-reveal-dur: px de ola que tarda cada tallo en aparecer
+         (más chico = aparece de golpe).
        La cantidad de tallos se recalcula sola (trajectory.ts) para
        llenar el recorrido con ese pitch. */
     --stem-piece-w: 36px;
     --stem-pitch: 14px;
+    --stem-reveal-lead: 8px;
+    --stem-reveal-dur: 4px;
     display: flex;
     align-items: flex-end;
     position: absolute;
@@ -197,21 +147,13 @@
     bottom: 1.5rem;
   }
 
-  /* Tallo 02: siempre presente, sin animación. */
-  .course-stem-start {
-    width: 2.2rem;
-    flex-shrink: 0;
-  }
-
   /* Fila de tallos 01: tamaño fijo por pieza; el margen negativo cierra
-     la separación (pitch = --stem-piece-w - |margin|) y el margen
-     izquierdo negativo pega el primer tallo 01 al borde del tallo 02. */
+     la separación (pitch = --stem-piece-w - |margin|). */
   .course-stem-row {
     display: flex;
     align-items: flex-end;
     flex: 1;
     min-width: 0;
-    margin-left: calc(var(--stem-piece-w) * -0.253 - 4px);
   }
 
   .course-stem-piece {
@@ -220,28 +162,16 @@
     margin-right: calc(var(--stem-pitch) - var(--stem-piece-w));
   }
 
-  /* Cabeza de la Piraña: arranca a la par del tallo 02 (left fijo) y
-     avanza con GSAP (x) hasta la bandera. Nunca desaparece: siempre
-     comiendo. */
+  /* Boca (mouth/01 <-> mouth/02): viaja con GSAP (x) sobre el último
+     tallo 01 generado, intercalando la mordida sin parar. */
   .course-head {
-    display: block;
     position: absolute;
-    left: 2.2rem;
-    bottom: 1.5rem;
+    left: 0;
+    bottom: 0;
     width: 2.6rem;
     z-index: 1;
     opacity: 0.9;
     will-change: transform;
-  }
-}
-
-@keyframes flag-sway {
-  0%,
-  100% {
-    transform: rotate(-4deg);
-  }
-  50% {
-    transform: rotate(3deg);
   }
 }
 
@@ -250,23 +180,6 @@
 @media (max-width: 767px) {
   .course {
     padding-bottom: 0;
-  }
-
-  .course-line {
-    display: block;
-    position: absolute;
-    left: 0.3rem;
-    top: 0.5rem;
-    bottom: 2.5rem;
-    width: 3px;
-    height: auto;
-    background: var(--line-strong);
-  }
-
-  .course-fill {
-    width: 100%;
-    height: 0;
-    background: var(--accent);
   }
 
   .course-node {
@@ -286,40 +199,11 @@
     border: 3px solid var(--accent);
   }
 
-  .course-start {
-    display: block;
-    position: absolute;
-    left: 0.55rem;
-    top: -0.55rem;
-    font-family: var(--font-pixel);
-    font-size: 8px;
-    letter-spacing: 0.12em;
-    color: var(--ink-dim);
-  }
-
-  .course-flag {
-    display: block;
-    position: absolute;
-    left: 0.45rem;
-    bottom: 0.25rem;
-    transform: translateX(-22%);
-  }
-
   .course-stem {
     display: none;
   }
 
   .course-stem-piece {
     display: none;
-  }
-
-  .course-head {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .course-flag {
-    animation: none;
   }
 }

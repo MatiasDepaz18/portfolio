@@ -203,17 +203,18 @@ exclusivamente en el hero.
 ## Trajectory
 
 ```html
-<app-piranha-plant />
+<app-piranha-plant state="stemShort" />
 ```
 
-Composición del recorrido en Experiencia laboral:
-- El tallo 02 (`stemTall`, start/02) queda ESTÁTICO a la izquierda,
-  siempre presente.
-- La cabeza (`bite`, default) arranca a su par y avanza con el scroll
-  (GSAP mueve `x`) hasta la bandera; nunca desaparece (siempre comiendo).
-- Los tallos 01 (`stemShort`, start/01) se van creando de a uno con el
-  scroll, detrás de la cabeza, de izquierda a derecha (opacidad por
-  pieza en la timeline). Oculto en mobile (CSS existente).
+El recorrido de Experiencia laboral es una fila de tallos 01
+(`stemShort`, start/01) que GSAP va creando de a uno con el scroll
+(opacidad por pieza, posiciones `i * pitch / chainLen` en la timeline),
+de izquierda a derecha a lo largo de la línea. La boca (`bite`, default)
+se posa sobre el último tallo VISIBLE: avanza de tallo en tallo y llega
+a cada pieza cuando esta ya quedó formada (nunca queda sobre un tallo
+que todavía no apareció), intercalando mouth/01 <-> mouth/02. La
+cantidad se recalcula sola según el ancho del curso y el pitch
+(`--stem-pitch` en el CSS). Oculto en mobile (CSS existente).
 
 ## ScrollPlant (barra de scroll)
 

@@ -38,13 +38,12 @@ se hunde ni desaparece.
 
 - `bite` (default): loop `mouth/01` <-> `mouth/02`, la boca abre y
   cierra sin parar (la planta "come" aunque esté quieta). Usado por la
-  cabeza del recorrido (arranca a la par del tallo 02 y avanza con el
-  scroll) y por la scroll plant.
-- `stemShort` (start/01): los tallos 01 (32 en fila densa) que se van
-  creando con el scroll, de izquierda a derecha, detrás de la cabeza
-  del recorrido.
-- `stemTall` (start/02): el tallo 02 estático, siempre presente a la
-  izquierda del recorrido.
+  scroll plant y por la boca del recorrido en Experiencia laboral (viaja
+  sobre el último tallo 01 generado).
+- `stemShort` (start/01): los tallos 01 que forman la fila del
+  recorrido en Experiencia laboral: GSAP los va creando de a uno con el
+  scroll, de izquierda a derecha, hasta llenar el curso.
+- `stemTall` (start/02): sin uso actual (quedó fuera del recorrido).
 
 ## Boca blanca
 

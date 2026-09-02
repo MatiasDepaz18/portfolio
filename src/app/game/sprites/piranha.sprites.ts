@@ -80,7 +80,7 @@ export const PIRANHA_SHEET: SpriteSheet = {
     bite: {
       fps: 5,
       whiteMouth: true,
-      rotate: 270,
+      rotate: 45,
       frames: [
         fr('mouth', 1, 15, 193, 76, 76), // boca abierta (76x76 rotado)
         fr('mouth', 2, 15, 273, 76, 75), // boca cerrada (75x76 rotado)
