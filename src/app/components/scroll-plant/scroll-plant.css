@@ -1,0 +1,93 @@
+:host {
+  display: block;
+}
+
+.scroll-plant {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 0;
+  z-index: 10;
+  pointer-events: none;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .scroll-plant {
+    display: block;
+  }
+}
+
+/* Contenedor de la planta: mantiene la proporción del stageBox del
+   sheet (77:77, cuadrado). El transform deja la planta asomando del
+   caño por defecto; GSAP la hace emerger por completo al scrollear. */
+.scroll-plant-wrap {
+  position: relative;
+  width: 3.2rem;
+  aspect-ratio: 77 / 77;
+  transform: translateY(40%);
+  will-change: transform;
+}
+
+.scroll-plant-sprite {
+  position: absolute;
+  inset: 0;
+}
+
+/* El caño tapa la base de la planta: por eso la planta parece salir
+   de adentro. Queda sobre el sprite (z-index) y con borde pixel. */
+.scroll-plant-pipe {
+  position: absolute;
+  left: -16%;
+  right: -16%;
+  bottom: 0;
+  height: 26%;
+  z-index: 2;
+  background: var(--accent);
+  border: 2px solid var(--line-strong);
+}
+
+/* Reborde superior del caño: una línea clara marca la boca del tubo. */
+.scroll-plant-pipe::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  height: 10px;
+  background: color-mix(in srgb, var(--accent) 55%, var(--bg-base));
+  border: 2px solid var(--line-strong);
+}
+
+.scroll-plant-pipe {
+  --p: 8px;
+  clip-path: polygon(
+    0 var(--p),
+    var(--p) 0,
+    calc(100% - var(--p)) 0,
+    100% var(--p),
+    100% calc(100% - var(--p)),
+    calc(100% - var(--p)) 100%,
+    var(--p) 100%,
+    0 calc(100% - var(--p))
+  );
+}
+
+.scroll-plant-pipe::before {
+  --p: 4px;
+  clip-path: polygon(
+    0 var(--p),
+    var(--p) 0,
+    calc(100% - var(--p)) 0,
+    100% var(--p),
+    100% calc(100% - var(--p)),
+    calc(100% - var(--p)) 100%,
+    var(--p) 100%,
+    0 calc(100% - var(--p))
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-plant-wrap {
+    transform: none;
+  }
+}

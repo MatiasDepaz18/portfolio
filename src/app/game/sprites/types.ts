@@ -36,6 +36,21 @@ export interface SpriteAnimation {
    *   elementos que crecen hacia abajo (ej: lengua que desciende).
    */
   anchor?: 'bottom-center' | 'bottom-left' | 'top-left';
+  /**
+   * Pinta de blanco el interior de la boca de los frames (extractor).
+   * Regla: los píxeles transparentes flanqueados por rojo (labios) a un
+   * lado y por cualquier píxel opaco al otro se rellenan de blanco, y el
+   * relleno se propaga por el interior conectado (flood fill).
+   */
+  whiteMouth?: boolean;
+  /**
+   * Rota los PNG extraídos (extractor). El frame queda horneado con esa
+   * orientación y `width`/`height` del frame pasan a ser las del PNG
+   * rotado.
+   * - 90 : giro horario (el contenido arriba pasa a la derecha)
+   * - 270: giro antihorario (el contenido arriba pasa a la izquierda)
+   */
+  rotate?: 90 | 270;
 }
 
 export interface SpriteSheet {

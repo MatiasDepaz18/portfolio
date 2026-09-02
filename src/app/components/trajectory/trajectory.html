@@ -1,7 +1,7 @@
 <app-section-shell
   id="trajectory"
-  title="Trayectoria"
-  lede="El recorrido hasta acá, con la bandera al final. Agregá tus experiencias en data/experience.data.ts."
+  title="Experiencia laboral"
+  lede="El recorrido hasta acá, con la bandera al final. Agregá tus trabajos en data/experience.data.ts."
 >
   <div class="course" #course>
     <!-- línea del nivel -->
@@ -35,9 +35,19 @@
       <app-flag [size]="44" />
     </div>
 
-    <!-- Yoshi corre por la línea -->
-    <div class="course-walker" #walker aria-hidden="true">
-      <app-yoshi-character state="run" />
+    <!-- La Piraña: el tallo 02 queda estático a la izquierda con la
+         cabeza a su par; los tallos 01 se van creando con el scroll
+         detrás de la cabeza mientras avanza hacia la bandera -->
+    <div class="course-stem" #stem aria-hidden="true">
+      <app-piranha-plant state="stemTall" class="course-stem-start" />
+      <div class="course-stem-row">
+        @for (piece of stemPieces(); track $index) {
+          <app-piranha-plant class="course-stem-piece" [state]="piece.state" />
+        }
+      </div>
+    </div>
+    <div class="course-head" #head aria-hidden="true">
+      <app-piranha-plant />
     </div>
   </div>
 </app-section-shell>

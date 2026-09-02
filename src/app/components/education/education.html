@@ -1,0 +1,28 @@
+<app-section-shell
+  id="education"
+  title="Educación"
+  lede="Mis logros académicos, desbloqueados."
+>
+  <div class="achievements">
+    @for (e of entries; track e.degree) {
+      <article class="achievement pixel-corners" appReveal>
+        <header class="achievement-head">
+          <div class="achievement-coin" aria-hidden="true">
+            <div class="achievement-coin-sprite"></div>
+          </div>
+          <div class="achievement-titles">
+            <app-badge variant="gold">LOGRO DESBLOQUEADO</app-badge>
+            <h3 class="achievement-degree">{{ e.degree }}</h3>
+            <p class="achievement-institution">{{ e.institution }}</p>
+          </div>
+          <span class="achievement-period">{{ e.period }}</span>
+        </header>
+        <ul class="achievement-bullets">
+          @for (b of e.bullets; track b) {
+            <li>{{ b }}</li>
+          }
+        </ul>
+      </article>
+    }
+  </div>
+</app-section-shell>

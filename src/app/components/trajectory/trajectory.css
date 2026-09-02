@@ -98,7 +98,11 @@
   display: none;
 }
 
-.course-walker {
+.course-stem {
+  display: none;
+}
+
+.course-head {
   display: none;
 }
 
@@ -172,12 +176,60 @@
     animation: flag-sway 3.4s ease-in-out infinite;
   }
 
-  .course-walker {
-    display: block;
+  /* Tallo de la Piraña: el tallo 02 (start) está estático a la
+     izquierda; los tallos 01 se van creando con el scroll (opacidad por
+     pieza, posiciones en la timeline de TS). Sin GSAP (reduced motion)
+     quedan todos visibles. */
+  .course-stem {
+    /* TUNEO MANUAL de los tallos 01:
+       --stem-piece-w: ancho de cada tallo en px (tamaño de la planta).
+       --stem-pitch: separación entre tallos en px. Más chico = más
+         juntos (con --stem-pitch < ancho de la planta se superponen).
+       La cantidad de tallos se recalcula sola (trajectory.ts) para
+       llenar el recorrido con ese pitch. */
+    --stem-piece-w: 36px;
+    --stem-pitch: 14px;
+    display: flex;
+    align-items: flex-end;
     position: absolute;
     left: 0;
-    bottom: -0.15rem;
-    width: 2.4rem;
+    right: 0;
+    bottom: 1.5rem;
+  }
+
+  /* Tallo 02: siempre presente, sin animación. */
+  .course-stem-start {
+    width: 2.2rem;
+    flex-shrink: 0;
+  }
+
+  /* Fila de tallos 01: tamaño fijo por pieza; el margen negativo cierra
+     la separación (pitch = --stem-piece-w - |margin|) y el margen
+     izquierdo negativo pega el primer tallo 01 al borde del tallo 02. */
+  .course-stem-row {
+    display: flex;
+    align-items: flex-end;
+    flex: 1;
+    min-width: 0;
+    margin-left: calc(var(--stem-piece-w) * -0.253 - 4px);
+  }
+
+  .course-stem-piece {
+    width: var(--stem-piece-w);
+    flex: 0 0 var(--stem-piece-w);
+    margin-right: calc(var(--stem-pitch) - var(--stem-piece-w));
+  }
+
+  /* Cabeza de la Piraña: arranca a la par del tallo 02 (left fijo) y
+     avanza con GSAP (x) hasta la bandera. Nunca desaparece: siempre
+     comiendo. */
+  .course-head {
+    display: block;
+    position: absolute;
+    left: 2.2rem;
+    bottom: 1.5rem;
+    width: 2.6rem;
+    z-index: 1;
     opacity: 0.9;
     will-change: transform;
   }
@@ -253,7 +305,15 @@
     transform: translateX(-22%);
   }
 
-  .course-walker {
+  .course-stem {
+    display: none;
+  }
+
+  .course-stem-piece {
+    display: none;
+  }
+
+  .course-head {
     display: none;
   }
 }

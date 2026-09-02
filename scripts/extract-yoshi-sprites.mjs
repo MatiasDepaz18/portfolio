@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
- * Extrae los PNG individuales de Yoshi a partir del sheet master.
+ * Extrae los PNG individuales de un sprite a partir del sheet master.
  *
- * Fuente de verdad: src/app/game/sprites/yoshi.sprites.ts (YOSHI_SHEET).
- * Este script NO modifica yoshi.png; solo recorta y escribe:
+ * Fuente de verdad: src/app/game/sprites/<nombre>.sprites.ts
+ *   (export <NOMBRE>_SHEET, ej: YOSHI_SHEET / PIRANA_SHEET).
+ * Este script NO modifica el sheet master; solo recorta y escribe:
  *
- *   src/assets/game/yoshi/<anim>/<NN>.png
+ *   src/assets/game/<nombre>/<anim>/<NN>.png
  *
- * Uso: npm run extract:yoshi
+ * Uso: node scripts/extract-yoshi-sprites.mjs <nombre>
+ *   npm run extract:yoshi    -> node scripts/extract-yoshi-sprites.mjs yoshi
+ *   npm run extract:piranha  -> node scripts/extract-yoshi-sprites.mjs piranha
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -15,7 +18,9 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SHEET_TS = join(ROOT, 'src/app/game/sprites/yoshi.sprites.ts');
+const SHEET_NAME = process.argv[2] ?? 'yoshi';
+const EXPORT_NAME = `${SHEET_NAME.toUpperCase()}_SHEET`;
+const SHEET_TS = join(ROOT, 'src/app/game/sprites', `${SHEET_NAME}.sprites.ts`);
 
 /* ------------------------------------------------------------------ */
 /* PNG decode / encode (solo zlib nativo, sin dependencias)            */
@@ -183,16 +188,16 @@ function encodePng(w, h, rgba) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Carga de la fuente de verdad (YOSHI_SHEET desde el TS)              */
+/* Carga de la fuente de verdad (<NOMBRE>_SHEET desde el TS)           */
 /* ------------------------------------------------------------------ */
 
-async function loadYoshiSheet() {
+async function loadSheet() {
   // Node >= 23.6: type stripping nativo. Fallback: transpile con el
   // typescript del proyecto (funciona en cualquier versión de Node).
   try {
     const mod = await import(SHEET_TS);
-    return mod.YOSHI_SHEET;
-  } catch {
+    return mod[EXPORT_NAME];
+  } catch (e) {
     const ts = await import('typescript');
     const source = readFileSync(SHEET_TS, 'utf8');
     const { outputText } = ts.transpileModule(source, {
@@ -201,7 +206,7 @@ async function loadYoshiSheet() {
     const mod = await import(
       `data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`
     );
-    return mod.YOSHI_SHEET;
+    return mod[EXPORT_NAME];
   }
 }
 
@@ -239,14 +244,88 @@ function contains(inner, outer) {
   );
 }
 
+/**
+ * Pinta de blanco el interior de la boca de un frame (animaciones con
+ * `whiteMouth: true`). Regla:
+ *   1. Semillas: píxeles transparentes flanqueados por ROJO (labios)
+ *      dentro de 16px a un lado y por CUALQUIER píxel opaco al otro.
+ *   2. Flood fill (4-conectividad) desde las semillas a través de todos
+ *      los píxeles transparentes: el interior conectado de la boca queda
+ *      blanco y los labios/dientes (opacos) no se tocan.
+ */
+function whitenMouth(crop, width, height) {
+  const at = (x, y) => (y * width + x) * 4;
+  const transparent = (x, y) => crop[at(x, y) + 3] <= 8;
+  const opaque = (x, y) => crop[at(x, y) + 3] > 8;
+  const red = (x, y) =>
+    opaque(x, y) && crop[at(x, y)] > 170 && crop[at(x, y) + 1] < 100 && crop[at(x, y) + 2] < 100;
+
+  const find = (x, y, dx, max, test) => {
+    for (let d = 1; d <= max; d++) {
+      const nx = x + dx * d;
+      if (nx < 0 || nx >= width) return false;
+      if (test(nx, y)) return true;
+    }
+    return false;
+  };
+
+  const queue = [];
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (!transparent(x, y)) continue;
+      const redLeft = find(x, y, -1, 16, red) && find(x, y, 1, 16, opaque);
+      const redRight = find(x, y, 1, 16, red) && find(x, y, -1, 16, opaque);
+      if (redLeft || redRight) {
+        queue.push([x, y]);
+      }
+    }
+  }
+
+  while (queue.length > 0) {
+    const [x, y] = queue.pop();
+    if (!transparent(x, y)) continue;
+    crop[at(x, y)] = 255;
+    crop[at(x, y) + 1] = 255;
+    crop[at(x, y) + 2] = 255;
+    crop[at(x, y) + 3] = 255;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height && transparent(nx, ny)) {
+        queue.push([nx, ny]);
+      }
+    }
+  }
+}
+
+/** Rota un buffer RGBA 90 grados. cw = true: horario; false: antihorario. */
+function rotatePng(crop, width, height, cw) {
+  const out = Buffer.alloc(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const o = (y * width + x) * 4;
+      const dx = cw ? height - 1 - y : y;
+      const dy = cw ? x : width - 1 - x;
+      const d = (dy * height + dx) * 4;
+      out[d] = crop[o];
+      out[d + 1] = crop[o + 1];
+      out[d + 2] = crop[o + 2];
+      out[d + 3] = crop[o + 3];
+    }
+  }
+  return { buf: out, w: height, h: width };
+}
+
 async function main() {
-  const sheet = await loadYoshiSheet();
+  const sheet = await loadSheet();
   console.log(`Sheet master: ${sheet.url} (${sheet.sheetWidth}x${sheet.sheetHeight})`);
 
   const masterPath = join(ROOT, 'src', sheet.url);
   const master = decodePng(masterPath);
   if (master.width !== sheet.sheetWidth || master.height !== sheet.sheetHeight) {
-    throw new Error('El sheet master no coincide con las dimensiones declaradas en YOSHI_SHEET.');
+    throw new Error(
+      `El sheet master no coincide con las dimensiones declaradas en ${SHEET_NAME}.sprites.ts.`,
+    );
   }
 
   // Colección de todos los frames para detectar contención entre ellos.
@@ -282,7 +361,7 @@ async function main() {
       }
 
       // 1. Recortar el frame del sheet master.
-      const crop = Buffer.alloc(r.width * r.height * 4);
+      let crop = Buffer.alloc(r.width * r.height * 4);
       for (let yy = 0; yy < r.height; yy++) {
         const srcOff = ((r.y + yy) * sheet.sheetWidth + r.x) * 4;
         master.rgba.copy(crop, yy * r.width * 4, srcOff, srcOff + r.width * 4);
@@ -315,15 +394,38 @@ async function main() {
         );
       }
 
-      // 3. Validar el recorte antes de escribir.
+      // 2.5. Boca blanca: rellenar el interior del hocico (si la
+      //      animación lo pide). Debe correr después de la limpieza de
+      //      píxeles contenidos (que ya borró lo que no es del frame).
+      if (anim.whiteMouth) {
+        whitenMouth(crop, r.width, r.height);
+      }
+
+      // 2.6. Rotación horneada (si la animación la pide). El frame
+      //      queda rotado en el PNG y las dimensiones cambian.
+      let outW = r.width;
+      let outH = r.height;
+      if (anim.rotate === 90) {
+        const rot = rotatePng(crop, outW, outH, true);
+        crop = rot.buf;
+        outW = rot.w;
+        outH = rot.h;
+      } else if (anim.rotate === 270) {
+        const rot = rotatePng(crop, outW, outH, false);
+        crop = rot.buf;
+        outW = rot.w;
+        outH = rot.h;
+      }
+
+      // 3. Validar el recorte antes de escribir (dims ya rotadas).
       let opaquePx = 0;
-      let minX = r.width,
+      let minX = outW,
         maxX = -1,
-        minY = r.height,
+        minY = outH,
         maxY = -1;
-      for (let yy = 0; yy < r.height; yy++) {
-        for (let xx = 0; xx < r.width; xx++) {
-          if (crop[(yy * r.width + xx) * 4 + 3] > 8) {
+      for (let yy = 0; yy < outH; yy++) {
+        for (let xx = 0; xx < outW; xx++) {
+          if (crop[(yy * outW + xx) * 4 + 3] > 8) {
             opaquePx++;
             if (xx < minX) minX = xx;
             if (xx > maxX) maxX = xx;
@@ -336,9 +438,9 @@ async function main() {
         report(`${frame.src}: frame vacío`);
         return;
       }
-      if (minX !== 0 || minY !== 0 || maxX !== r.width - 1 || maxY !== r.height - 1) {
+      if (minX !== 0 || minY !== 0 || maxX !== outW - 1 || maxY !== outH - 1) {
         report(
-          `${frame.src}: el contenido no toca los bordes del rect (minX=${minX} maxX=${maxX} minY=${minY} maxY=${maxY} de ${r.width}x${r.height})`,
+          `${frame.src}: el contenido no toca los bordes del rect (minX=${minX} maxX=${maxX} minY=${minY} maxY=${maxY} de ${outW}x${outH})`,
         );
         return;
       }
@@ -346,9 +448,9 @@ async function main() {
       // 4. Escribir el PNG individual.
       const outPath = join(ROOT, 'src', frame.src);
       mkdirSync(dirname(outPath), { recursive: true });
-      writeFileSync(outPath, encodePng(r.width, r.height, crop));
+      writeFileSync(outPath, encodePng(outW, outH, crop));
       written++;
-      console.log(`  ✔ ${frame.src} (${r.width}x${r.height}, ${opaquePx}px opacos)`);
+      console.log(`  ✔ ${frame.src} (${outW}x${outH}, ${opaquePx}px opacos)`);
     });
   }
 
@@ -392,7 +494,7 @@ async function main() {
   console.log(`\n${written} PNG escritos, ${checked} validados, ${problems.length} problemas.`);
   if (problems.length > 0) {
     console.error(
-      '\nProblemas detectados. Corregí las coordenadas en yoshi.sprites.ts y re-ejecutá el extractor.',
+      `\nProblemas detectados. Corregí las coordenadas en ${SHEET_NAME}.sprites.ts y re-ejecutá el extractor.`,
     );
     process.exit(1);
   }

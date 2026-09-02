@@ -1,5 +1,5 @@
 /**
- * TRAYECTORIA - la línea START → bandera.
+ * EXPERIENCIA LABORAL - la línea START → bandera.
  * Agregá tus experiencias reales copiando el bloque comentado al final.
  * Cada milestone aparece como un checkpoint en la línea del nivel.
  */
@@ -11,15 +11,6 @@ export interface Milestone {
 }
 
 export const milestones: Milestone[] = [
-  {
-    period: '2024',
-    title: 'Ing. en Computación',
-    place: 'Facultad de Ciencias Exactas y Tecnologías, UNT',
-    bullets: [
-      'Formación en algoritmos, estructuras de datos y arquitectura de software.',
-      'Trabajos aplicados a datos, simulación y desarrollo de sistemas.',
-    ],
-  },
   {
     period: 'Actualidad',
     title: 'Software Developer',

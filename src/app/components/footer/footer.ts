@@ -6,7 +6,8 @@ const FOOTER_LINKS = [
   { id: 'about', label: 'Sobre mí' },
   { id: 'skills', label: 'Habilidades' },
   { id: 'projects', label: 'Proyectos' },
-  { id: 'trajectory', label: 'Trayectoria' },
+  { id: 'trajectory', label: 'Experiencia laboral' },
+  { id: 'education', label: 'Educación' },
   { id: 'contact', label: 'Contacto' },
 ] as const;
 

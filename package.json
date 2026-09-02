@@ -8,7 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:portfolo-web": "node dist/portfolo-web/server/server.mjs",
-    "extract:yoshi": "node scripts/extract-yoshi-sprites.mjs",
+    "extract:yoshi": "node scripts/extract-yoshi-sprites.mjs yoshi",
+    "extract:piranha": "node scripts/extract-yoshi-sprites.mjs piranha",
     "clean:assets": "node scripts/clean-assets.mjs"
   },
   "private": true,

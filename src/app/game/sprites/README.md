@@ -1,4 +1,4 @@
-# Sistema de Sprites (Yoshi y futuros personajes)
+# Sistema de Sprites (Yoshi, Planta Piraña y futuros personajes)
 
 Motor reutilizable para personajes por PNG individuales dentro del
 portfolio. Reemplaza al dinosaurio SVG anterior. El sprite y el movimiento
@@ -8,25 +8,28 @@ mueve el host (x/y/scale/opacity/rotation).
 ## Pipeline del asset
 
 ```
-yoshi.png (sheet master, 564x281 palette PNG)
+<sheet>.png (sheet master)
       │
-      ├── npm run extract:yoshi
-      │        └── recorta los PNG individuales (scripts/extract-yoshi-sprites.mjs)
+      ├── npm run extract:yoshi    (scripts/extract-yoshi-sprites.mjs yoshi)
+      │        └── recorta los PNG individuales
+      │
+      ├── npm run extract:piranha  (scripts/extract-yoshi-sprites.mjs piranha)
+      │        └── recorta los PNG individuales
       │
       ▼
-PNG individuales (walk/, tongue/, run/, ...)
+PNG individuales (<anim>/)
       │
       ▼
-YOSHI_SHEET (definición, fuente de verdad)
+<SHEET> (definición, fuente de verdad)
       │
       ▼
 SpriteCharacter (motor genérico)
       │
       ▼
-YoshiCharacter (wrapper)
+YoshiCharacter / PiranhaPlant (wrappers)
       │
       ▼
-GSAP (About + Trajectory)
+GSAP (Hero + Trajectory + ScrollPlant)
 ```
 
 ## Source
@@ -38,11 +41,16 @@ GSAP (About + Trajectory)
 
 ## Extract — scripts/extract-yoshi-sprites.mjs
 
+El script es genérico: recibe el nombre del sheet por parámetro y lee la
+fuente de verdad `src/app/game/sprites/<nombre>.sprites.ts`
+(export `<NOMBRE>_SHEET`).
+
 ```
 npm run extract:yoshi
+npm run extract:piranha
 ```
 
-1. Lee la fuente de verdad `src/app/game/sprites/yoshi.sprites.ts`.
+1. Lee la fuente de verdad `src/app/game/sprites/<nombre>.sprites.ts`.
 2. Recorta cada frame del sheet master preservando RGBA y calidad
    (soporta sheet RGBA 8-bit y palette PNG: colorType 3 + tRNS).
 3. Valida antes de escribir: frame no vacío, contenido tocando todos los
@@ -52,7 +60,7 @@ npm run extract:yoshi
 5. Valida post-escritura: archivo existe, dimensiones esperadas,
    contenido presente, patrón de nombre `basePath/anim/NN.png`.
 
-Si el extractor reporta problemas, se corrigen en `yoshi.sprites.ts`
+Si el extractor reporta problemas, se corrigen en el `.sprites.ts`
 (la fuente de verdad) y se vuelve a ejecutar. Nunca editar los PNG a mano.
 
 ## Sprite architecture
@@ -195,12 +203,38 @@ exclusivamente en el hero.
 ## Trajectory
 
 ```html
-<app-yoshi-character state="run" />
+<app-piranha-plant />
 ```
 
-El walker del curso: GSAP mueve `.course-walker` a lo largo de la línea
-(scroll scrub) mientras el sprite reproduce el ciclo `run/01..10`.
-Oculto en mobile (CSS existente).
+Composición del recorrido en Experiencia laboral:
+- El tallo 02 (`stemTall`, start/02) queda ESTÁTICO a la izquierda,
+  siempre presente.
+- La cabeza (`bite`, default) arranca a su par y avanza con el scroll
+  (GSAP mueve `x`) hasta la bandera; nunca desaparece (siempre comiendo).
+- Los tallos 01 (`stemShort`, start/01) se van creando de a uno con el
+  scroll, detrás de la cabeza, de izquierda a derecha (opacidad por
+  pieza en la timeline). Oculto en mobile (CSS existente).
+
+## ScrollPlant (barra de scroll)
+
+```html
+<app-scroll-plant />
+```
+
+Planta fija al borde derecho de la ventana dentro de un caño (CSS). Usa
+el estado `bite` (mouth/01 <-> mouth/02): nunca deja de abrir y cerrar
+la boca. La planta emerge del caño según el progreso de scroll de toda
+la página (GSAP ScrollTrigger con scrub sobre el documento). Con
+`prefers-reduced-motion` queda estática asomando (el CSS la deja
+parcialmente emergida y GSAP no corre). Solo desktop (>= 768px).
+
+## Boca blanca (whiteMouth)
+
+Las animaciones de la piraña declaran `whiteMouth: true`: el extractor
+pinta de blanco el interior del hocico (los píxeles transparentes
+flanqueados por los labios rojos, con flood fill por el interior
+conectado). Así la boca abierta se ve blanca por dentro en cualquier
+tema. Ver `whitenMouth()` en `scripts/extract-yoshi-sprites.mjs`.
 
 ## Performance
 
