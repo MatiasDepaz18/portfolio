@@ -70,12 +70,12 @@
         </dl>
 
         <div class="cart-actions">
-          <app-game-button variant="ghost" [href]="project().repoUrl" [external]="true">
+          <app-game-button [href]="project().repoUrl" [external]="true">
             <ng-icon name="phosphorGithubLogo" />
             Código
           </app-game-button>
           @if (project().demoUrl) {
-            <app-game-button variant="primary" [href]="project().demoUrl" [external]="true">
+            <app-game-button [href]="project().demoUrl" [external]="true">
               Demo
               <ng-icon name="phosphorArrowUpRight" />
             </app-game-button>

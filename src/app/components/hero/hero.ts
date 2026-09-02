@@ -1,12 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { NgIcon } from '@ng-icons/core';
 import { GameButton } from '../shared/game-button/game-button';
 import { HeroYoshi } from './hero-yoshi';
 
 @Component({
   selector: 'app-hero',
   standalone: true,
-  imports: [GameButton, NgIcon, HeroYoshi],
+  imports: [GameButton, HeroYoshi],
   templateUrl: './hero.html',
   styleUrl: './hero.css',
 })

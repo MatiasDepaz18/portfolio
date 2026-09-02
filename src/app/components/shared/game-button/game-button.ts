@@ -1,10 +1,15 @@
 import { Component, input } from '@angular/core';
 
-type ButtonVariant = 'primary' | 'ghost' | 'gold';
-
 /**
- * Botón de juego con física de presión.
+ * Botón de juego con contorno, esquinas punteadas y relleno por barrido.
  * Se renderiza como <a> si `href` existe, si no como <button>.
+ *
+ * Interacción:
+ * - Contorno y puntos en las 4 esquinas con el color del tema (--ink).
+ * - Hover: el fondo se rellena de amarillo de derecha a izquierda;
+ *   el texto se invierte a tinta oscura.
+ * - Mouse out: el relleno retrocede de izquierda a derecha desde el
+ *   punto en el que quedó.
  */
 @Component({
   selector: 'app-game-button',
@@ -15,7 +20,7 @@ type ButtonVariant = 'primary' | 'ghost' | 'gold';
         [attr.href]="href()"
         [attr.target]="external() ? '_blank' : null"
         [attr.rel]="external() ? 'noopener noreferrer' : null"
-        class="game-btn pixel-corners game-btn-{{ variant() }}"
+        class="game-btn pixel-corners"
       >
         <ng-content />
       </a>
@@ -23,7 +28,7 @@ type ButtonVariant = 'primary' | 'ghost' | 'gold';
       <button
         [attr.type]="type()"
         [disabled]="disabled()"
-        class="game-btn pixel-corners game-btn-{{ variant() }}"
+        class="game-btn pixel-corners"
       >
         <ng-content />
       </button>
@@ -32,73 +37,106 @@ type ButtonVariant = 'primary' | 'ghost' | 'gold';
   styles: `
     .game-btn {
       --p: 5px;
+      --btn-fill: #ffd11a;
+      --btn-fill-ink: #16130a;
+      position: relative;
+      isolation: isolate;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      padding: 0.7rem 1.4rem;
+      padding: 0.75rem 1.75rem;
+      background-color: transparent;
+      border: 2px solid var(--ink);
+      color: var(--ink);
       font-family: var(--font-display);
       font-size: 0.925rem;
       font-weight: 650;
-      letter-spacing: 0.01em;
-      border: 1px solid transparent;
+      letter-spacing: 0.02em;
       cursor: pointer;
       text-decoration: none;
-      transition:
-        transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
-        background-color 0.2s ease,
-        border-color 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.2s ease;
       user-select: none;
       white-space: nowrap;
+      transition: color 0.12s ease 0.08s;
+      /* Puntos de las 4 esquinas: color del tema (blanco en oscuro,
+         oscuro en claro) */
+      background-image:
+        radial-gradient(circle, var(--ink) 2.5px, transparent 3.5px),
+        radial-gradient(circle, var(--ink) 2.5px, transparent 3.5px),
+        radial-gradient(circle, var(--ink) 2.5px, transparent 3.5px),
+        radial-gradient(circle, var(--ink) 2.5px, transparent 3.5px);
+      background-size: 14px 14px;
+      background-repeat: no-repeat;
+      background-position:
+        0 0,
+        100% 0,
+        0 100%,
+        100% 100%;
     }
-    .game-btn:active {
-      transform: translateY(2px) scale(0.98);
+
+    /* Relleno por barrido. Anclado a la derecha: al entrar crece de
+       derecha a izquierda; al salir retrocede de izquierda a derecha. */
+    .game-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--btn-fill);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: -1;
+      pointer-events: none;
     }
+
+    /* Táctil: no hay hover. El relleno se dispara con :active mientras
+       el dedo presiona y retrocede al soltar. El bloque (hover: hover)
+       evita que el hover "pegajoso" del tap deje el botón relleno. */
+    .game-btn:active:not(:disabled)::before {
+      transform: scaleX(1);
+    }
+
+    .game-btn:active:not(:disabled) {
+      color: var(--btn-fill-ink);
+      transition: color 0.1s ease;
+    }
+
+    /* Mouse: el relleno barre de derecha a izquierda al entrar y el
+       texto se invierte cuando el relleno ya lo cubre. Al salir,
+       retrocede de izquierda a derecha y el texto vuelve. */
+    @media (hover: hover) and (pointer: fine) {
+      .game-btn:hover:not(:disabled)::before,
+      .game-btn:focus-visible:not(:disabled)::before {
+        transform: scaleX(1);
+      }
+
+      .game-btn:hover:not(:disabled),
+      .game-btn:focus-visible:not(:disabled) {
+        color: var(--btn-fill-ink);
+        transition: color 0.12s ease 0.2s;
+      }
+    }
+
+    .game-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
     .game-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.45;
       cursor: not-allowed;
     }
 
-    .game-btn-primary {
-      background: var(--accent);
-      color: var(--accent-ink);
-      box-shadow:
-        inset 0 -2px 0 rgb(0 0 0 / 0.22),
-        0 1px 0 color-mix(in srgb, var(--accent) 30%, transparent);
-    }
-    .game-btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow:
-        inset 0 -2px 0 rgb(0 0 0 / 0.22),
-        0 6px 18px color-mix(in srgb, var(--accent) 28%, transparent);
-    }
+    @media (prefers-reduced-motion: reduce) {
+      .game-btn {
+        transition: none;
+      }
 
-    .game-btn-ghost {
-      background: transparent;
-      border-color: var(--line-strong);
-      color: var(--ink-soft);
-    }
-    .game-btn-ghost:hover:not(:disabled) {
-      transform: translateY(-2px);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .game-btn-gold {
-      background: var(--gold);
-      color: #16130a;
-      font-weight: 750;
-      box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.2);
-    }
-    .game-btn-gold:hover:not(:disabled) {
-      transform: translateY(-2px);
+      .game-btn::before {
+        transition: none;
+      }
     }
   `,
 })
 export class GameButton {
-  readonly variant = input<ButtonVariant>('primary');
   readonly href = input<string | null | undefined>(null);
   readonly external = input(false);
   readonly type = input<'button' | 'submit'>('button');

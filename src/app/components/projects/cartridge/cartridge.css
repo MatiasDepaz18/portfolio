@@ -359,35 +359,6 @@
   font-size: 0.78rem;
 }
 
-/* Demo: navy sólido como el label del frente. */
-.cart-well app-game-button[variant='primary'] {
-  background: var(--well-navy);
-  color: var(--well-navy-ink);
-  border-color: rgb(10 16 28 / 0.6);
-  box-shadow:
-    inset 0 -2px 0 rgb(0 0 0 / 0.28),
-    0 1px 0 rgb(255 255 255 / 0.14);
-}
-
-.cart-well app-game-button[variant='primary']:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 -2px 0 rgb(0 0 0 / 0.28),
-    0 6px 16px rgb(0 0 0 / 0.3);
-}
-
-/* Código: ghost gris claro sobre el plástico. */
-.cart-well app-game-button[variant='ghost'] {
-  background: transparent;
-  border-color: rgb(233 238 227 / 0.42);
-  color: var(--well-ink);
-}
-
-.cart-well app-game-button[variant='ghost']:hover:not(:disabled) {
-  border-color: #86a80f;
-  color: #86a80f;
-}
-
 /* ---------------------- reduced motion: sin flip ---------------------- */
 
 @media (prefers-reduced-motion: reduce) {
