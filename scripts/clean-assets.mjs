@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Limpia el fondo de los assets de coins, gameboy y switch.
+ * Limpia el fondo del asset de coins y recorta la pantalla de la switch.
  *
- * Los PNG subidos (coin.png, gameboy.png) no tienen transparencia: el
- * fondo viene incluido. Este script hace un flood fill desde los bordes
- * del canvas y vuelve transparente todo lo que esté cerca del color de
- * las esquinas (el fondo), dejando el objeto intacto.
+ * El PNG subido (coin.png) no tiene transparencia: el fondo viene
+ * incluido. Este script hace un flood fill desde los bordes del canvas
+ * y vuelve transparente todo lo que esté cerca del color de las
+ * esquinas (el fondo), dejando el objeto intacto.
  *
  * La switch (switch.png, convertido desde el webp HD) ya trae fondo
  * transparente: acá solo se le recorta la pantalla (vidrio gris plano)
@@ -13,8 +13,6 @@
  *
  * Uso: npm run clean:assets
  * Salidas: src/assets/game/coins/coin-clean.png
- *          src/assets/game/gameboy/gameboy-clean.png
- *          src/assets/game/gameboy/gameboy-body.png
  *          src/assets/game/switch/switch-body.png
  * No modifica los originales.
  */
@@ -270,13 +268,6 @@ const JOBS = [
     minOpaquePct: 15,
     threshold: 40,
   },
-  {
-    name: 'gameboy',
-    src: join(ROOT, 'src/assets/game/gameboy/gameboy.png'),
-    out: join(ROOT, 'src/assets/game/gameboy/gameboy-clean.png'),
-    minOpaquePct: 25,
-    threshold: 40,
-  },
 ];
 
 /* ---------------- pantalla de la switch ---------------- */
@@ -329,52 +320,6 @@ function clearSwitchScreen({ width: W, height: H, rgba }, rect) {
   return { ok: true };
 }
 
-/* ---------------- recorte de pantalla (gameboy y switch) ---------------- */
-
-/**
- * Recorta la pantalla de un sprite limpio: genera un sprite "body" con
- * la pantalla transparente (para que el contenido de la sección se vea
- * a través de la pantalla). El predicado decide qué es pantalla.
- */
-function cutScreen({ width: W, height: H, rgba }, outPath, isScreen) {
-  // Bounding box de los píxeles de pantalla.
-  let minX = W,
-    maxX = -1,
-    minY = H,
-    maxY = -1;
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      if (isScreen(x, y)) {
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      }
-    }
-  }
-  if (minX > maxX) {
-    return { rect: null };
-  }
-
-  // Flood fill desde el centro de la pantalla: solo la zona continua.
-  const removed = new Uint8Array(W * H);
-  const stack = [[Math.floor((minX + maxX) / 2), Math.floor((minY + maxY) / 2)]];
-  while (stack.length) {
-    const [x, y] = stack.pop();
-    if (x < 0 || y < 0 || x >= W || y >= H) continue;
-    const idx = y * W + x;
-    if (removed[idx]) continue;
-    if (!isScreen(x, y)) continue;
-    removed[idx] = 1;
-    const o = idx * 4;
-    rgba[o + 3] = 0;
-    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
-  }
-
-  writeFileSync(outPath, encodePng(W, H, rgba));
-  return { rect: { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 } };
-}
-
 let failed = false;
 const screenRects = {};
 for (const job of JOBS) {
@@ -391,32 +336,6 @@ for (const job of JOBS) {
   mkdirSync(dirname(job.out), { recursive: true });
   writeFileSync(job.out, encodePng(cleaned.width, cleaned.height, cleaned.rgba));
   console.log(`  ✔ ${job.out}`);
-
-  if (job.name === 'gameboy') {
-    // Verde LCD: r ≈ g, b claramente menor.
-    const isGameboyScreen = (x, y) => {
-      const o = (y * cleaned.width + x) * 4;
-      const r = cleaned.rgba[o],
-        g = cleaned.rgba[o + 1],
-        b = cleaned.rgba[o + 2];
-      if (cleaned.rgba[o + 3] < 100) return false;
-      return Math.abs(r - g) < 24 && b < r * 0.62 && r > 60;
-    };
-    const { rect } = cutScreen(
-      cleaned,
-      join(ROOT, 'src/assets/game/gameboy/gameboy-body.png'),
-      isGameboyScreen,
-    );
-    if (rect) {
-      screenRects.gameboy = rect;
-      console.log(
-        `  ✔ gameboy-body.png (pantalla recortada: ${rect.width}x${rect.height} en x${rect.x},y${rect.y})`,
-      );
-    } else {
-      failed = true;
-      console.error('  ✘ No se encontró la pantalla LCD (verde).');
-    }
-  }
 }
 
 /* La switch no pasa por removeBackground (ya tiene alpha limpio):
@@ -439,6 +358,4 @@ if (ok) {
 if (failed) {
   process.exit(1);
 }
-console.log(
-  `\nLimpieza OK. Pantallas: gameboy ${JSON.stringify(screenRects.gameboy)}, switch ${JSON.stringify(screenRects.switch)}`,
-);
+console.log(`\nLimpieza OK. Pantallas: switch ${JSON.stringify(screenRects.switch)}`);

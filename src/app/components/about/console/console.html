@@ -1,0 +1,198 @@
+<div
+  class="console"
+  [class.is-off]="!powerOn()"
+  tabindex="0"
+  role="group"
+  aria-label="Consola interactiva del CV: currículum, descarga y mini juego"
+>
+  <!-- Fila superior: POWER + versión -->
+  <div class="console-top">
+    <button
+      type="button"
+      class="power-switch"
+      [class.is-on]="powerOn()"
+      (click)="togglePower()"
+      aria-label="Encender o apagar la consola"
+    >
+      <span class="power-icon" aria-hidden="true"></span>
+      POWER
+    </button>
+    <span class="console-version" aria-hidden="true">MDP—2026</span>
+  </div>
+
+  <!-- Marco gris + LCD -->
+  <div class="bezel">
+    <div class="bezel-title">DOT MATRIX WITH PERSONAL VISION</div>
+    <span class="battery" aria-hidden="true">
+      <b [class.is-on]="powerOn()"></b>
+      BATTERY
+    </span>
+
+    <div class="lcd" [class.is-canvas]="screen() === 'select' || screen() === 'game'">
+      <div class="lcd-view">
+        @if (!powerOn()) {
+          <div class="lcd-off">
+            <span class="eyebrow">POWER</span>
+            <span class="lcd-off-brand">MATIAS DEPAZ</span>
+          </div>
+        } @else if (screen() === 'menu') {
+          <div class="lcd-menu">
+            <div class="lcd-menu-head">
+              <span class="eyebrow">PERSONAL CARTRIDGE / 01</span>
+              <span class="lcd-menu-title">ELEGÍ UNA OPCIÓN</span>
+            </div>
+            <ul class="lcd-menu-list">
+              @for (item of menu; track item.id; let i = $index) {
+                <li class="lcd-menu-item" [class.is-selected]="menuIndex() === i">
+                  <span>{{ menuIndex() === i ? '▶' : '·' }} {{ item.label }}</span>
+                  <span>{{ i < 9 ? '0' + (i + 1) : i + 1 }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        } @else if (screen() === 'cv') {
+          <div class="lcd-cv">
+            <span class="eyebrow">CURRÍCULUM</span>
+            <h3 class="lcd-cv-name">{{ site.name }}</h3>
+            <p class="lcd-cv-role">{{ site.role }}</p>
+            <ul class="lcd-cv-list">
+              <li>▶ Ing. en Computación · UNT</li>
+              <li>▶ Angular · TypeScript</li>
+              <li>▶ {{ site.location }}</li>
+              <li>▶ {{ site.githubHandle }}</li>
+            </ul>
+          </div>
+        } @else if (screen() === 'download') {
+          <div class="lcd-download">
+            <span class="eyebrow">DESCARGAR CV</span>
+            <p class="lcd-download-text">¿Descargar el PDF del CV?</p>
+            <button type="button" class="lcd-ok" tabindex="-1" (click)="downloadCv()">
+              A = DESCARGAR
+            </button>
+            <span class="lcd-download-note">B = CANCELAR</span>
+          </div>
+        } @else if (screen() === 'select' || screen() === 'game') {
+          @if (gameUnavailable()) {
+            <div class="lcd-error">
+              <span class="eyebrow">MINI JUEGO</span>
+              <p>CANVAS NO DISPONIBLE</p>
+              <span>B = VOLVER</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Lienzo del juego: siempre montado, visible en select y en juego -->
+      <canvas #gameCanvas class="lcd-canvas" aria-label="Mini juego" role="img"></canvas>
+
+      <div class="lcd-footer">
+        <span>{{ footerLeft() }}</span>
+        <span>{{ footerRight() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="console-brand" aria-hidden="true">MATIAS DEPAZ <strong>DEV BOY</strong>™</div>
+
+  <!-- Controles -->
+  <div class="controls">
+    <div class="dpad" aria-label="Cruceta">
+      <button
+        type="button"
+        class="up"
+        [disabled]="!powerOn()"
+        tabindex="-1"
+        (click)="onUp()"
+        aria-label="Arriba"
+      >
+        ▲
+      </button>
+      <button
+        type="button"
+        class="left"
+        [disabled]="!powerOn()"
+        tabindex="-1"
+        (click)="onLeft()"
+        aria-label="Izquierda"
+      >
+        ◀
+      </button>
+      <span class="pad-center" aria-hidden="true"></span>
+      <button
+        type="button"
+        class="right"
+        [disabled]="!powerOn()"
+        tabindex="-1"
+        (click)="onRight()"
+        aria-label="Derecha"
+      >
+        ▶
+      </button>
+      <button
+        type="button"
+        class="down"
+        [disabled]="!powerOn()"
+        tabindex="-1"
+        (click)="onDown()"
+        aria-label="Abajo"
+      >
+        ▼
+      </button>
+    </div>
+
+    <div class="ab" aria-label="Botones A y B">
+      <div>
+        <button
+          type="button"
+          [disabled]="!powerOn()"
+          tabindex="-1"
+          (click)="onB()"
+          aria-label="Botón B"
+        ></button>
+        <span>B</span>
+      </div>
+      <div>
+        <button
+          type="button"
+          [disabled]="!powerOn()"
+          tabindex="-1"
+          (click)="onA()"
+          aria-label="Botón A"
+        ></button>
+        <span>A</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-controls">
+    <div class="minor">
+      <button
+        type="button"
+        [disabled]="!powerOn()"
+        tabindex="-1"
+        (click)="onSelect()"
+        aria-label="Select"
+      ></button>
+      <span>SELECT</span>
+    </div>
+    <div class="minor">
+      <button
+        type="button"
+        [disabled]="!powerOn()"
+        tabindex="-1"
+        (click)="onStart()"
+        aria-label="Start"
+      ></button>
+      <span>START</span>
+    </div>
+  </div>
+
+  <div class="speaker" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+  <div class="under-console">
+    <span
+      ><kbd>↑</kbd><kbd>↓</kbd> navegar · <kbd>A</kbd> abrir · <kbd>B</kbd> volver ·
+      <kbd>ESPACIO</kbd> saltar</span
+    >
+  </div>
+</div>

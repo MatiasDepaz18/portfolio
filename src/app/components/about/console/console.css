@@ -1,0 +1,587 @@
+:host {
+  display: block;
+}
+
+/* ---------- paleta clásica DMG ---------- */
+
+.console {
+  --gb-body: #d4d0c8;
+  --gb-body-hi: #dedbd3;
+  --gb-body-lo: #c6c2b9;
+  --gb-bezel: #4c4d57;
+  --gb-lcd: #8bac0f;
+  --gb-lcd-ink: #0f380f;
+  --gb-btn: #a01a58;
+  --gb-dpad: #292930;
+  --gb-blue: #233481;
+  --gb-pill: #6e7075;
+  --gb-muted: #7a776e;
+
+  position: relative;
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(155deg, var(--gb-body-hi), var(--gb-body) 55%, var(--gb-body-lo));
+  border-radius: 12px 12px 12px 50px;
+  color: #101211;
+  box-shadow:
+    inset 2px 2px 5px rgba(255, 255, 255, 0.7),
+    inset -4px -4px 8px rgba(0, 0, 0, 0.15),
+    0 20px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- fila superior ---------- */
+
+.console-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.power-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  color: var(--gb-muted);
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.power-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #55524a;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.power-switch.is-on .power-icon {
+  background: #00cc55;
+  box-shadow: 0 0 6px #00cc55;
+}
+
+.console-version {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--gb-muted);
+}
+
+/* ---------- marco gris + LCD ---------- */
+
+.bezel {
+  position: relative;
+  padding: 14px 22px 18px;
+  background: var(--gb-bezel);
+  border-radius: 8px 8px 30px 8px;
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.bezel-title {
+  margin-bottom: 10px;
+  padding: 3px 0;
+  color: #b9bac6;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  text-align: center;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-top: 1px solid #8a2050;
+  border-bottom: 1px solid var(--gb-blue);
+}
+
+.battery {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 4px;
+  letter-spacing: 0.06em;
+  color: #b9bac6;
+}
+
+.battery b {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3a3b45;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.battery b.is-on {
+  background: #e63946;
+  box-shadow: 0 0 6px #e63946;
+  animation: battery-blink 2.4s ease-in-out infinite;
+}
+
+@keyframes battery-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ---------- LCD ---------- */
+
+.lcd {
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  padding: 12px;
+  background: var(--gb-lcd);
+  color: var(--gb-lcd-ink);
+  border-radius: 4px;
+  box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.lcd-view {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+}
+
+.lcd.is-canvas .lcd-view {
+  display: none;
+}
+
+.lcd-canvas {
+  display: none;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.lcd.is-canvas .lcd-canvas {
+  display: block;
+}
+
+.lcd-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--gb-lcd-ink);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.eyebrow {
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* apagada / descarga / error de juego */
+
+.lcd-off,
+.lcd-download,
+.lcd-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.lcd-off {
+  gap: 8px;
+}
+
+.lcd-download,
+.lcd-error {
+  gap: 10px;
+}
+
+.lcd-off-brand {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+.lcd-error p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lcd-error > span:not(.eyebrow) {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* menú */
+
+.lcd-menu {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.lcd-menu-head {
+  margin-bottom: 8px;
+}
+
+.lcd-menu-title {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lcd-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lcd-menu-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lcd-menu-item.is-selected {
+  background: var(--gb-lcd-ink);
+  color: var(--gb-lcd);
+}
+
+/* CV */
+
+.lcd-cv {
+  flex: 1;
+}
+
+.lcd-cv-name {
+  margin: 4px 0 0;
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.lcd-cv-role {
+  margin: 6px 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lcd-cv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* descarga */
+
+.lcd-download-text {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.lcd-ok {
+  padding: 8px 14px;
+  background: var(--gb-lcd-ink);
+  color: var(--gb-lcd);
+  border: none;
+  border-radius: 2px;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.lcd-download-note {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* ---------- marca ---------- */
+
+.console-brand {
+  margin: 14px 0 0;
+  text-align: center;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--gb-blue);
+}
+
+.console-brand strong {
+  font-weight: 400;
+}
+
+/* ---------- controles ---------- */
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding: 0 6px;
+}
+
+/* cruceta */
+
+.dpad {
+  position: relative;
+  width: 92px;
+  height: 92px;
+}
+
+.dpad button {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: var(--gb-dpad);
+  color: #6a6a76;
+  border: none;
+  font-size: 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #101018;
+}
+
+.dpad button:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #101018;
+}
+
+.dpad button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.dpad .up {
+  top: 0;
+  left: 31px;
+  width: 30px;
+  height: 33px;
+  border-radius: 4px 4px 0 0;
+}
+
+.dpad .down {
+  bottom: 0;
+  left: 31px;
+  width: 30px;
+  height: 33px;
+  border-radius: 0 0 4px 4px;
+}
+
+.dpad .left {
+  top: 31px;
+  left: 0;
+  width: 33px;
+  height: 30px;
+  border-radius: 4px 0 0 4px;
+}
+
+.dpad .right {
+  top: 31px;
+  right: 0;
+  width: 33px;
+  height: 30px;
+  border-radius: 0 4px 4px 0;
+}
+
+.dpad .pad-center {
+  position: absolute;
+  top: 31px;
+  left: 31px;
+  width: 30px;
+  height: 30px;
+  background: var(--gb-dpad);
+}
+
+.dpad .pad-center::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, #383843, #1d1d25 80%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* A / B */
+
+.ab {
+  display: flex;
+  gap: 16px;
+  padding: 8px 14px;
+  background: #c2bebd;
+  border-radius: 34px;
+  transform: rotate(-20deg);
+  box-shadow:
+    inset 1px 1px 3px rgba(0, 0, 0, 0.25),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.ab div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ab button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #c4286e, var(--gb-btn));
+  cursor: pointer;
+  box-shadow: 2px 3px 0 #5e0c32;
+}
+
+.ab button:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #5e0c32;
+}
+
+.ab button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.ab span {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gb-blue);
+}
+
+/* select / start */
+
+.bottom-controls {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 20px;
+}
+
+.minor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transform: rotate(-20deg);
+}
+
+.minor button {
+  width: 44px;
+  height: 12px;
+  background: var(--gb-pill);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 1px 2px 0 #3a3b3f;
+}
+
+.minor button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 #3a3b3f;
+}
+
+.minor button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.minor span {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--gb-blue);
+}
+
+/* ---------- altavoz ---------- */
+
+.speaker {
+  display: flex;
+  gap: 7px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  transform: rotate(-20deg);
+}
+
+.speaker i {
+  width: 7px;
+  height: 44px;
+  background: #b0aca3;
+  border-radius: 3px;
+  box-shadow:
+    inset 1px 1px 2px rgba(0, 0, 0, 0.35),
+    inset -1px -1px 1px rgba(255, 255, 255, 0.35);
+}
+
+/* ---------- hints bajo la consola ---------- */
+
+.under-console {
+  margin-top: 14px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gb-muted);
+}
+
+kbd {
+  display: inline-block;
+  margin: 0 1px;
+  padding: 2px 5px;
+  background: #222;
+  color: #fff;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battery b.is-on {
+    animation: none;
+  }
+}
