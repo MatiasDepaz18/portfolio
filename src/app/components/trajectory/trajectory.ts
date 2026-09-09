@@ -8,6 +8,7 @@ import {
   viewChild,
   type OnDestroy,
 } from '@angular/core';
+import { NgIcon } from '@ng-icons/core';
 import { GsapService } from '../../services/gsap.service';
 import { SectionShell } from '../shared/section-shell/section-shell';
 import { RevealDirective } from '../../directives/reveal.directive';
@@ -108,7 +109,7 @@ function toPathD(vertices: Pt[]): string {
 @Component({
   selector: 'app-trajectory',
   standalone: true,
-  imports: [SectionShell, RevealDirective, Flag, YoshiCharacter],
+  imports: [SectionShell, RevealDirective, Flag, YoshiCharacter, NgIcon],
   templateUrl: './trajectory.html',
   styleUrl: './trajectory.css',
 })
@@ -134,14 +135,35 @@ export class Trajectory implements OnDestroy {
   private characterEl: HTMLElement | null = null;
   private travelProxy = { p: 0 };
   private travelTween: { kill: () => void } | null = null;
+  /** Fortaleza que abrió el diálogo: se le devuelve el foco al cerrar. */
+  private dialogTrigger: HTMLElement | null = null;
 
   constructor(private gsapService: GsapService) {
-    // Al abrir el detalle, el foco pasa al cuadro de diálogo para lectores
-    // de pantalla.
-    effect(() => {
-      if (this.selected() !== null) {
-        this.dialog()?.nativeElement.focus();
+    // Mientras el detalle está abierto: foco al cuadro, scroll del fondo
+    // bloqueado, ESC global para cerrar y Tab contenido adentro (mismo
+    // patrón que la vista expandida de skills).
+    effect((onCleanup) => {
+      if (this.selected() === null || typeof document === 'undefined') {
+        return;
       }
+      this.dialog()?.nativeElement.focus();
+      document.body.style.overflow = 'hidden';
+      const onKey = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          this.close();
+        } else if (event.key === 'Tab') {
+          const box = this.dialog()?.nativeElement;
+          if (box) {
+            this.trapFocus(event, box);
+          }
+        }
+      };
+      document.addEventListener('keydown', onKey);
+      onCleanup(() => {
+        document.removeEventListener('keydown', onKey);
+        document.body.style.overflow = '';
+      });
     });
 
     afterNextRender(() => {
@@ -176,9 +198,19 @@ export class Trajectory implements OnDestroy {
   }
 
   /** Click en una fortaleza: Yoshi camina hasta ahí y abre su info. */
-  async select(i: number): Promise<void> {
+  async select(i: number, event?: Event): Promise<void> {
     this.activeIndex.set(i);
+    this.dialogTrigger = (event?.currentTarget as HTMLElement | null) ?? this.dialogTrigger;
     if (this.selected() === i) {
+      return;
+    }
+    // Si Yoshi ya está parado en esa fortaleza, abre el diálogo al toque
+    // (sin esperar el viaje: el tween aterriza exacto en el destino).
+    const target = this.castleProgress(i);
+    const alreadyThere = Math.abs(this.travelProxy.p - target) < 1e-4;
+    if (alreadyThere) {
+      this.selected.set(i);
+      this.yoshi()?.setState('think');
       return;
     }
     if (!this.characterEl || !this.gsap) {
@@ -192,7 +224,7 @@ export class Trajectory implements OnDestroy {
     this.yoshi()?.setState('walk');
     this.travelTween?.kill();
     this.travelTween = this.gsap.to(this.travelProxy, {
-      p: this.castleProgress(i),
+      p: target,
       duration: 1.2,
       ease: 'power2.inOut',
       onUpdate: () => {
@@ -208,10 +240,48 @@ export class Trajectory implements OnDestroy {
     });
   }
 
-  /** Cierra el diálogo (botón × o ESC). */
+  /** Cierra el diálogo (botón X, scrim o ESC) y devuelve el foco a la
+   *  fortaleza que lo abrió. */
   close(): void {
     this.selected.set(null);
     this.activeIndex.set(null);
+    const trigger = this.dialogTrigger;
+    this.dialogTrigger = null;
+    if (trigger?.isConnected) {
+      trigger.focus();
+    }
+  }
+
+  /** Atrapa Tab/Shift+Tab dentro del cuadro mientras el diálogo está
+   *  abierto (los elementos de atrás no deben recibir el foco). */
+  private trapFocus(event: KeyboardEvent, box: HTMLElement): void {
+    const focusables = Array.from(
+      box.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => el.tabIndex >= 0);
+    if (focusables.length === 0) {
+      event.preventDefault();
+      box.focus();
+      return;
+    }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    const inside = active instanceof HTMLElement && box.contains(active);
+    if (!inside) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
+    const index = focusables.indexOf(active);
+    if (event.shiftKey && index <= 0) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (index === -1 || index === focusables.length - 1)) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   private async initMap(): Promise<void> {

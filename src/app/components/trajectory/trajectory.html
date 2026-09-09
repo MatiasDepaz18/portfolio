@@ -34,7 +34,7 @@
           [style.top]="nodeTop(i)"
           [attr.aria-label]="'Trabajo: ' + m.title + '. ' + m.period"
           [attr.aria-pressed]="activeIndex() === i"
-          (click)="select(i)"
+          (click)="select(i, $event)"
         >
           <span class="map-node-label">{{ m.label || m.title }}</span>
           <img
@@ -77,7 +77,7 @@
           (click)="$event.stopPropagation()"
         >
           <button type="button" class="map-dialog-close" (click)="close()" aria-label="Cerrar">
-            ×
+            <ng-icon name="phosphorX" />
           </button>
 
           <header class="map-dialog-head">

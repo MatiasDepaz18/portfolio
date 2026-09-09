@@ -42,6 +42,7 @@ export const milestones: Milestone[] = [
       'Análisis de métricas de negocio y comportamiento de usuarios para soportar decisiones.',
     ],
     tech: ['Python', 'SQL', 'BigQuery', 'Snowflake', 'Azure Data Factory', 'Databricks', 'Power BI', 'Looker Studio'],
+    logo: 'assets/experience/LG.jpg',
   },
   {
     label: 'FULLSTACK & AI',
@@ -59,6 +60,7 @@ export const milestones: Milestone[] = [
       'Respuesta y resolución de tickets internos.',
     ],
     tech: ['React', 'TypeScript', 'Next.js', 'Node.js', 'Python', 'Django', 'FastAPI', 'PostgreSQL', 'Redis', 'Docker', 'GitLab CI/CD'],
+    logo: 'assets/experience/CPA.jpg',
   },
   {
     label: 'INFRA IT',
@@ -74,6 +76,7 @@ export const milestones: Milestone[] = [
       'Mantenimiento básico de bases de datos y servicios SQL Server.',
     ],
     tech: ['TCP/IP', 'MikroTik', 'VoIP / SIP', 'SQL Server', 'DNS', 'HTTP', 'DHCP'],
+    logo: 'assets/experience/SOLMAR.png',
   },
   {
     label: 'DOCENTE',
@@ -86,6 +89,7 @@ export const milestones: Milestone[] = [
       'Docencia en el área de Bases de Datos desde 2026.',
     ],
     tech: ['Programación', 'Bases de datos', 'Algoritmos', 'Estructuras de datos', 'Métodos numéricos'],
+    logo: 'assets/experience/UNT.png',
   },
   /* TODO: copiá este bloque para agregar un trabajo real
   {

@@ -350,9 +350,7 @@
   height: 1.7rem;
   display: grid;
   place-items: center;
-  font-family: var(--font-mono);
   font-size: 1.05rem;
-  line-height: 1;
   color: #f5edc8;
   background: var(--dg-ink);
   border: none;
@@ -490,7 +488,9 @@
       0 12px 24px rgb(0 0 0 / 0.3);
   }
 
-  .map-node-label,
+  /* En mobile se ocultan los accesorios del tablero, pero los labels de
+     los trabajos siguen visibles (re-estilizados abajo): sin ellos no se
+     sabría qué trabajo es cada fortaleza. */
   .map-start,
   .map-flag,
   .map-block,
@@ -502,10 +502,28 @@
     width: 42px;
   }
 
+  /* Etiqueta del trabajo debajo de cada fortaleza: se saca del flujo
+     para que el castillo siga apoyado en el camino y el label cuelgue
+     sobre el pasto, con texto pixel legible en el tablero chico. */
+  .map-node-label {
+    position: absolute;
+    top: calc(100% + 3px);
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 96px;
+    font-size: 6px;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+    padding: 2px 5px;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 0.35);
+  }
+
   .map-character {
     width: 44px;
   }
 
+  /* Sin arbustos el pasto queda limpio para las etiquetas de abajo. */
+  .map-bush-1,
   .map-bush-2 {
     display: none;
   }
