@@ -20,7 +20,7 @@ const MENU: MenuItem[] = [
  * - Arranca directo en el MENÚ; navega con la cruceta (y teclado ↑↓) y
  *   abre con A.
  * - Vistas: Mi CV, Descargar CV (cvUrl) y Mini juego.
- * - Mini juego: primero se elige el dinosaurio (select con preview en el
+ * - Mini juego: primero se elige el personaje (select con preview en el
  *   canvas, ◀▶/↑↓ cambian, A confirma) y luego corre el runner.
  * - POWER apaga/enciende el LCD.
  * - El teclado solo consume flechas/espacio cuando el menú, el select o
@@ -60,7 +60,7 @@ export class AboutConsole implements OnDestroy {
       case 'download':
         return 'A  DESCARGAR';
       case 'select':
-        return '◀ ▶ DINO   A JUGAR';
+        return '◀ ▶ PERSONAJE   A JUGAR';
       case 'game':
         return 'A · ↑  SALTAR';
     }

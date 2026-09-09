@@ -2,6 +2,8 @@ import {
   Component,
   ElementRef,
   afterNextRender,
+  computed,
+  effect,
   signal,
   viewChild,
   type OnDestroy,
@@ -9,168 +11,221 @@ import {
 import { GsapService } from '../../services/gsap.service';
 import { SectionShell } from '../shared/section-shell/section-shell';
 import { RevealDirective } from '../../directives/reveal.directive';
-import { PiranhaPlant, type PiranhaState } from '../../game/sprites/piranha-plant';
+import { Flag } from '../shared/flag/flag';
+import { YoshiCharacter } from '../../game/sprites/yoshi-character';
 import { milestones } from '../../data/experience.data';
 
-/**
- * Tallos 01 (start/01) que se van creando con el scroll, formando una
- * cadena densa de izquierda a derecha a lo largo del recorrido.
- *
- * TUNEO MANUAL: el tamaño y la separación de los tallos 01 viven en
- * trajectory.css, dentro de `.course-stem`:
- *   --stem-piece-w: ancho de cada tallo (tamaño de la planta).
- *   --stem-pitch:   separación entre tallos; más chico = más juntos.
- *   --stem-reveal-lead / --stem-reveal-dur: ritmo de aparición.
- * La CANTIDAD se recalcula sola al render (según el ancho del curso y
- * el pitch) para llenar el recorrido.
- */
-const DEFAULT_PIECES: { state: PiranhaState }[] = Array.from({ length: 32 }, () => ({
-  state: 'stemShort',
-}));
+interface Pt {
+  x: number;
+  y: number;
+}
 
-const STEM_LIMITS = { min: 8, max: 80 } as const;
+/**
+ * Mapa de mundos estilo SMB3 interactivo.
+ * Yoshi arranca quieto en START (abajo a la izquierda) y CAMINA hasta la
+ * fortaleza cuando la tocás: viaja por el camino (se tweea el progreso de
+ * un proxy y Yoshi se posiciona en % con pointAt, igual que los castillos)
+ * y al llegar abre el cuadro de diálogo con la información del trabajo.
+ *
+ * El posicionamiento en % hace que Yoshi escale solo con el tablero: al
+ * achicar el navegador no se desvía del camino (a diferencia de un
+ * motionPath con align, que hornea píxeles al crear el tween).
+ *
+ * El camino tiene forma de "C" con esquinas redondeadas: entra abajo a la
+ * izquierda, recorre el riel inferior, sube por el derecho (curva ancha)
+ * y vuelve por el superior hasta la bandera. Las fortalezas se reparten a
+ * lo largo de toda la C según cuántos trabajos haya (funciona con 1..N).
+ */
+const VIEWBOX = { width: 900, height: 520 } as const;
+
+const LEFT_X = 70;
+const RIGHT_X = 830;
+const BOTTOM_Y = 430;
+const TOP_Y = 90;
+const CORNER_R = 110;
+
+/** Puntos de un arco de esquina redondeada (centro, de grados a grados). */
+function arcPoints(cx: number, cy: number, fromDeg: number, toDeg: number, steps = 6): Pt[] {
+  const pts: Pt[] = [];
+  for (let i = 1; i <= steps; i++) {
+    const a = (fromDeg + ((toDeg - fromDeg) * i) / steps) * (Math.PI / 180);
+    pts.push({
+      x: Math.round(cx + CORNER_R * Math.cos(a)),
+      y: Math.round(cy + CORNER_R * Math.sin(a)),
+    });
+  }
+  return pts;
+}
+
+/**
+ * Polilínea del camino en "C" con curvas pronunciadas en las esquinas
+ * inferiores-derecha y superiores-derecha (arcos de radio CORNER_R).
+ */
+const PATH_VERTICES: Pt[] = [
+  { x: LEFT_X, y: BOTTOM_Y },
+  { x: RIGHT_X - CORNER_R, y: BOTTOM_Y },
+  ...arcPoints(RIGHT_X - CORNER_R, BOTTOM_Y - CORNER_R, 90, 0),
+  { x: RIGHT_X, y: TOP_Y + CORNER_R },
+  ...arcPoints(RIGHT_X - CORNER_R, TOP_Y + CORNER_R, 0, -90),
+  { x: LEFT_X, y: TOP_Y },
+];
+
+interface Segment {
+  a: Pt;
+  b: Pt;
+  len: number;
+}
+
+const SEGMENTS: Segment[] = PATH_VERTICES.slice(0, -1).map((a, i) => {
+  const b = PATH_VERTICES[i + 1];
+  return { a, b, len: Math.hypot(b.x - a.x, b.y - a.y) };
+});
+
+const PATH_TOTAL = SEGMENTS.reduce((sum, s) => sum + s.len, 0);
+
+/** Punto de la polilínea en un progreso 0..1. */
+function pointAt(progress: number): Pt {
+  const target = Math.max(0, Math.min(1, progress)) * PATH_TOTAL;
+  let acc = 0;
+  for (const seg of SEGMENTS) {
+    if (target <= acc + seg.len) {
+      const t = seg.len === 0 ? 0 : (target - acc) / seg.len;
+      return {
+        x: seg.a.x + (seg.b.x - seg.a.x) * t,
+        y: seg.a.y + (seg.b.y - seg.a.y) * t,
+      };
+    }
+    acc += seg.len;
+  }
+  const last = PATH_VERTICES[PATH_VERTICES.length - 1];
+  return { x: last.x, y: last.y };
+}
+
+function toPathD(vertices: Pt[]): string {
+  return `M ${vertices.map((v) => `${v.x} ${v.y}`).join(' L ')}`;
+}
 
 @Component({
   selector: 'app-trajectory',
   standalone: true,
-  imports: [SectionShell, RevealDirective, PiranhaPlant],
+  imports: [SectionShell, RevealDirective, Flag, YoshiCharacter],
   templateUrl: './trajectory.html',
   styleUrl: './trajectory.css',
 })
 export class Trajectory implements OnDestroy {
   readonly milestones = milestones;
-  readonly stemPieces = signal<{ state: PiranhaState }[]>(DEFAULT_PIECES);
+  readonly mapPath = toPathD(PATH_VERTICES);
 
-  private course = viewChild<ElementRef<HTMLDivElement>>('course');
-  private stem = viewChild<ElementRef<HTMLDivElement>>('stem');
-  private head = viewChild<ElementRef<HTMLDivElement>>('head');
+  /** Fortaleza activa en el mapa (highlight). */
+  readonly activeIndex = signal<number | null>(null);
+  /** Fortaleza seleccionada (abrió el diálogo). */
+  readonly selected = signal<number | null>(null);
 
-  private ctx: { revert: () => void } | null = null;
-  private cleanup: (() => void) | null = null;
-  private proximity: IntersectionObserver | null = null;
-  /** Pitch (separación) de los tallos 01, leído del CSS. */
-  private stemPitch = 0;
+  readonly selectedMilestone = computed(() => {
+    const s = this.selected();
+    return s === null ? null : this.milestones[s] ?? null;
+  });
+
+  private dialog = viewChild<ElementRef<HTMLDivElement>>('dialog');
+  private character = viewChild<ElementRef<HTMLDivElement>>('character');
+  private yoshi = viewChild(YoshiCharacter);
+
+  private gsap: typeof import('gsap').gsap | null = null;
+  private characterEl: HTMLElement | null = null;
+  private travelProxy = { p: 0 };
+  private travelTween: { kill: () => void } | null = null;
 
   constructor(private gsapService: GsapService) {
+    // Al abrir el detalle, el foco pasa al cuadro de diálogo para lectores
+    // de pantalla.
+    effect(() => {
+      if (this.selected() !== null) {
+        this.dialog()?.nativeElement.focus();
+      }
+    });
+
     afterNextRender(() => {
-      // Guard: jsdom/test envs no tienen IntersectionObserver ni necesitan GSAP.
+      // Guard: jsdom/test envs no tienen IntersectionObserver.
       if (typeof IntersectionObserver === 'undefined') {
         return;
       }
-      const section = document.getElementById('trajectory');
-      const stemEl = this.stem()?.nativeElement;
-      const courseEl = this.course()?.nativeElement;
-      if (!section || !stemEl || !courseEl) {
-        return;
-      }
-      // Cantidad de tallos 01 según el ancho del curso y el pitch del CSS.
-      this.resizeStemPieces(stemEl, courseEl);
-      // GSAP se carga recién cuando Experiencia laboral está cerca del viewport
-      // (para entonces el DOM ya tiene la cantidad final de tallos).
-      this.proximity = new IntersectionObserver(
-        () => {
-          this.proximity?.disconnect();
-          void this.initCourseScrub();
-        },
-        { rootMargin: '300px 0px' },
-      );
-      this.proximity.observe(section);
+      // Se inicializa apenas renderiza (no espera el viewport): así el
+      // viaje de Yoshi está listo cuando el usuario toca una fortaleza.
+      void this.initMap();
     });
   }
 
-  /** Recalcula la cantidad de tallos 01 para llenar el recorrido
-   *  (deja 24px libres al final, junto a la bandera). */
-  private resizeStemPieces(stemEl: HTMLElement, courseEl: HTMLElement): void {
-    const css = getComputedStyle(stemEl);
-    const pitch = parseFloat(css.getPropertyValue('--stem-pitch')) || 16;
-    if (!(pitch > 0)) {
-      return;
-    }
-    this.stemPitch = pitch;
-    const available = courseEl.clientWidth - 24;
-    if (!(available > 0)) {
-      return;
-    }
-    const count = Math.max(STEM_LIMITS.min, Math.min(STEM_LIMITS.max, Math.floor(available / pitch)));
-    this.stemPieces.set(Array.from({ length: count }, () => ({ state: 'stemShort' })));
+  /** % horizontal del tablero donde vive la fortaleza i. */
+  nodeLeft(i: number): string {
+    return `${(pointAt(this.castleProgress(i)).x / VIEWBOX.width) * 100}%`;
   }
 
-  /**
-   * El recorrido se dibuja al scrollear: la línea avanza y los tallos
-   * 01 se van creando de izquierda a derecha, cada uno aparece cuando
-   * la ola de revelado lo alcanza. Solo desktop (mobile: línea vertical).
-   */
-  private async initCourseScrub(): Promise<void> {
-    const courseEl = this.course()?.nativeElement;
-    const stemEl = this.stem()?.nativeElement;
-    const headEl = this.head()?.nativeElement;
-    if (!courseEl || !stemEl || !headEl) {
+  /** % vertical del tablero donde vive la fortaleza i. */
+  nodeTop(i: number): string {
+    return `${(pointAt(this.castleProgress(i)).y / VIEWBOX.height) * 100}%`;
+  }
+
+  /** Progreso (0..1) sobre el camino para la fortaleza i: se reparten a
+   *  lo largo de toda la "C" dejando libres START y la bandera. */
+  castleProgress(i: number): number {
+    const n = this.milestones.length;
+    if (n <= 1) {
+      return 0.5;
+    }
+    return 0.08 + 0.84 * (i / (n - 1));
+  }
+
+  /** Click en una fortaleza: Yoshi camina hasta ahí y abre su info. */
+  async select(i: number): Promise<void> {
+    this.activeIndex.set(i);
+    if (this.selected() === i) {
       return;
     }
-
-    const gsap = await this.gsapService.get();
-
-    this.ctx = gsap.context(() => {
-      const mm = gsap.matchMedia();
-
-      mm.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
-        const pieces = gsap.utils.toArray<HTMLElement>('.course-stem-piece', stemEl);
-        const pitch = this.stemPitch || 16;
-        const chainLen = Math.max(1, pieces.length * pitch);
-
-        const tl = gsap.timeline({
-          defaults: { ease: 'none' },
-          scrollTrigger: {
-            trigger: courseEl,
-            start: 'top 75%',
-            end: 'bottom 55%',
-            scrub: 0.6,
-            invalidateOnRefresh: true,
-          },
-        });
-
-        const stemCss = getComputedStyle(stemEl);
-        const lead = parseFloat(stemCss.getPropertyValue('--stem-reveal-lead')) || 8;
-        const durPx = parseFloat(stemCss.getPropertyValue('--stem-reveal-dur')) || 4;
-
-        // La boca (mouth/01 <-> mouth/02) se posa sobre el último tallo
-        // VISIBLE: avanza de tallo en tallo y llega a cada pieza cuando
-        // esta ya quedó formada (fin del reveal). Así nunca queda sobre
-        // un tallo que todavía no apareció.
-        const endPos = (k: number) => Math.max(0, (k * pitch - lead + durPx) / chainLen);
-        pieces.forEach((piece, i) => {
-          if (i === 0) {
-            return; // la boca arranca sobre el primer tallo (left 0)
-          }
-          const from = endPos(i - 1);
-          const to = endPos(i);
-          tl.to(headEl, { x: i * pitch, duration: Math.max(to - from, 0.0001) }, from);
-        });
-
-        // Cada tallo 01 aparece de a poco: empieza `lead` px antes de
-        // que la ola lo alcance y queda formado tras `durPx` px.
-        pieces.forEach((piece, i) => {
-          const pos = Math.max(0, (i * pitch - lead) / chainLen);
-          tl.fromTo(
-            piece,
-            { opacity: 0, scale: 0.8 },
-            { opacity: 1, scale: 1, duration: durPx / chainLen },
-            pos,
-          );
-        });
-      });
+    if (!this.characterEl || !this.gsap) {
+      await this.initMap();
+    }
+    const el = this.characterEl;
+    if (!el || !this.gsap) {
+      this.selected.set(i);
+      return;
+    }
+    this.yoshi()?.setState('walk');
+    this.travelTween?.kill();
+    this.travelTween = this.gsap.to(this.travelProxy, {
+      p: this.castleProgress(i),
+      duration: 1.2,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        // Posición en % desde pointAt: escala con el tablero (sin drift).
+        const pt = pointAt(this.travelProxy.p);
+        el.style.left = `${(pt.x / VIEWBOX.width) * 100}%`;
+        el.style.top = `${(pt.y / VIEWBOX.height) * 100}%`;
+      },
+      onComplete: () => {
+        this.selected.set(i);
+        this.yoshi()?.setState('think');
+      },
     });
+  }
 
-    const onLoad = () => this.gsapService.refresh();
-    window.addEventListener('load', onLoad);
-    this.cleanup = () => {
-      window.removeEventListener('load', onLoad);
-      this.ctx?.revert();
-    };
+  /** Cierra el diálogo (botón × o ESC). */
+  close(): void {
+    this.selected.set(null);
+    this.activeIndex.set(null);
+  }
+
+  private async initMap(): Promise<void> {
+    const characterEl = this.character()?.nativeElement;
+    if (characterEl) {
+      this.characterEl = characterEl;
+    }
+    // Se asegura de que GSAP esté cargado para el primer viaje.
+    if (!this.gsap) {
+      this.gsap = await this.gsapService.get();
+    }
   }
 
   ngOnDestroy(): void {
-    this.proximity?.disconnect();
-    this.cleanup?.();
+    this.travelTween?.kill();
   }
 }

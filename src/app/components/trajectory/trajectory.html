@@ -1,40 +1,117 @@
 <app-section-shell
   id="trajectory"
   title="Experiencia laboral"
-  lede="El recorrido hasta acá. Agregá tus trabajos en data/experience.data.ts."
+  lede="El recorrido hasta acá: tocá una fortaleza y Yoshi viaja hasta ahí para abrir el detalle de cada trabajo."
 >
-  <div class="course" #course>
-    <!-- checkpoints -->
-    <div class="course-nodes">
-      @for (m of milestones; track m.title) {
-        <div class="course-node" appReveal [appRevealDelay]="$index * 90">
-          <span class="course-dot" aria-hidden="true"></span>
-          <article class="course-card">
-            <p class="course-period">{{ m.period }}</p>
-            <h3 class="course-card-title">{{ m.title }}</h3>
-            <p class="course-place">{{ m.place }}</p>
-            <ul class="course-bullets">
-              @for (b of m.bullets; track b) {
-                <li>{{ b }}</li>
-              }
-            </ul>
-          </article>
-        </div>
+  <div class="world-map" appReveal>
+    <div class="map-board">
+      <!-- Camino en forma de "C": entra abajo a la izquierda, pasa por
+           los rieles inferior, derecho y superior, y sale arriba. -->
+      <svg class="map-svg" viewBox="0 0 900 520" aria-hidden="true">
+        <path class="map-path-under" [attr.d]="mapPath"></path>
+        <path class="map-path" [attr.d]="mapPath"></path>
+      </svg>
+
+      <!-- decoración -->
+      <div class="map-water" aria-hidden="true"></div>
+      <div class="map-bush map-bush-1" aria-hidden="true"></div>
+      <div class="map-bush map-bush-2" aria-hidden="true"></div>
+      <div class="map-block" aria-hidden="true">?</div>
+
+      <!-- Yoshi: arranca quieto en START y viaja al tocar una fortaleza -->
+      <div class="map-character" #character aria-hidden="true">
+        <app-yoshi-character #yoshi state="think" [scale]="0.9" />
+        <div class="map-character-shadow"></div>
+      </div>
+
+      <!-- Fortalezas: un botón por trabajo -->
+      @for (m of milestones; track m.title; let i = $index) {
+        <button
+          type="button"
+          class="map-node"
+          [class.is-active]="activeIndex() === i"
+          [style.left]="nodeLeft(i)"
+          [style.top]="nodeTop(i)"
+          [attr.aria-label]="'Trabajo: ' + m.title + '. ' + m.period"
+          [attr.aria-pressed]="activeIndex() === i"
+          (click)="select(i)"
+        >
+          <span class="map-node-label">{{ m.label || m.title }}</span>
+          <img
+            class="map-node-castle"
+            src="assets/game/castle/pngkey.com-castle-png-88353.png"
+            alt=""
+            width="54"
+            height="63"
+            loading="lazy"
+          />
+        </button>
+      }
+
+      <span class="map-start" aria-hidden="true">START</span>
+      <div class="map-flag" aria-hidden="true">
+        <app-flag [size]="52" />
+      </div>
+
+      <!-- Hint central cuando todavía no se tocó ninguna fortaleza -->
+      @if (selected() === null) {
+        <p class="map-hint" aria-hidden="true">TOCÁ UNA FORTALEZA</p>
       }
     </div>
 
-    <!-- La Piraña: fila de tallos 01 que se van creando con el scroll
-         a lo largo de la línea, de izquierda a derecha, y la boca
-         (mouth/01 <-> mouth/02) posada sobre el último tallo generado -->
-    <div class="course-stem" #stem aria-hidden="true">
-      <div class="course-stem-row">
-        @for (piece of stemPieces(); track $index) {
-          <app-piranha-plant class="course-stem-piece" [state]="piece.state" />
-        }
+    <!-- Cuadro de diálogo estilo Mario: la info del trabajo elegido -->
+    @if (selectedMilestone(); as m) {
+      <div
+        class="map-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Detalle del trabajo"
+        (click)="close()"
+      >
+        <div
+          class="map-dialog-box"
+          #dialog
+          tabindex="-1"
+          aria-live="polite"
+          (keydown.escape)="close()"
+          (click)="$event.stopPropagation()"
+        >
+          <button type="button" class="map-dialog-close" (click)="close()" aria-label="Cerrar">
+            ×
+          </button>
+
+          <header class="map-dialog-head">
+            <div class="map-dialog-logo" aria-hidden="true">
+              @if (m.logo) {
+                <img class="map-dialog-logo-img" [src]="m.logo" alt="" loading="lazy" />
+              } @else {
+                <span class="map-dialog-logo-initial">{{ m.place.charAt(0) }}</span>
+              }
+            </div>
+            <div class="map-dialog-head-text">
+              <p class="map-dialog-period">{{ m.period }}</p>
+              <h3 class="map-dialog-title">{{ m.title }}</h3>
+              <p class="map-dialog-place">{{ m.place }}</p>
+            </div>
+          </header>
+
+          @if (m.description) {
+            <p class="map-dialog-desc">{{ m.description }}</p>
+          }
+
+          <ul class="map-dialog-bullets">
+            @for (b of m.bullets; track b) {
+              <li>{{ b }}</li>
+            }
+          </ul>
+
+          <ul class="map-dialog-tech">
+            @for (t of m.tech; track t) {
+              <li class="map-dialog-tech-item">{{ t }}</li>
+            }
+          </ul>
+        </div>
       </div>
-      <div class="course-head" #head aria-hidden="true">
-        <app-piranha-plant />
-      </div>
-    </div>
+    }
   </div>
 </app-section-shell>

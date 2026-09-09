@@ -1,7 +1,7 @@
 /**
  * Mini juego "runner" estilo dino de Google, dibujado en un <canvas>.
- * El jugador elige con qué dinosaurio correr (T-REX o ESTEGOSAURIO);
- * la velocidad sube con el score. Se controla con ▲ / Space / A / Enter
+ * El jugador elige con qué personaje correr (dinosaurios, gato, conejo
+ * o fantasma); la velocidad sube con el score. Se controla con ▲ / Space / A / Enter
  * / tap en pantalla.
  *
  * Física: `py` es la altura sobre el suelo (positiva = arriba). Al saltar
@@ -58,6 +58,72 @@ export const DINOS: Dino[] = [
       '...#######..', // 10: Cadera
       '...##...##..', // 11: Patas
       '..###..###..', // 12: Pies anchos
+      '............', // 13: Base libre
+    ],
+  },
+  {
+    id: 'cat',
+    name: 'GATO',
+    eyeCol: 7,
+    eyeRow: 3,
+    sprite: [
+      '.#.......#..', // 0: Orejas (puntas)
+      '###.....###.', // 1: Orejas
+      '###########.', // 2: Cabeza superior
+      '###########.', // 3: Cara (ojos en cols 3 y 7)
+      '.#########..', // 4: Hocico
+      '..#######...', // 5: Cuello
+      '.#########..', // 6: Pecho / Espalda
+      '###########.', // 7: Cuerpo
+      '############', // 8: Cuerpo y cola (col 11)
+      '############', // 9: Cuerpo y cola (col 11)
+      '.#########.#', // 10: Cadera y cola (col 11)
+      '..##...##..#', // 11: Patas y punta de cola
+      '..##...##...', // 12: Patitas
+      '............', // 13: Base libre
+    ],
+  },
+  {
+    id: 'bunny',
+    name: 'BAD BUNNY',
+    eyeCol: 8,
+    eyeRow: 5,
+    sprite: [
+      '..##....##..', // 0: Orejas (puntas)
+      '..##....##..', // 1: Orejas
+      '..##....##..', // 2: Orejas
+      '..##....##..', // 3: Base de orejas
+      '.###########', // 4: Cabeza superior
+      '############', // 5: Cara (ojos en cols 3 y 8)
+      '############', // 6: Cachetes
+      '.##########.', // 7: Barbilla
+      '..########..', // 8: Pecho y brazos
+      '.##########.', // 9: Panza
+      '############', // 10: Cuerpo inferior
+      '############', // 11: Patas
+      '.##......##.', // 12: Patitas/pies
+      '............', // 13: Base libre
+    ],
+  },
+  {
+    id: 'ghost',
+    name: 'GHOST',
+    eyeCol: 8,
+    eyeRow: 3,
+    sprite: [
+      '....####....', // 0: Cabeza redondeada
+      '..########..', // 1: Cabeza
+      '.##########.', // 2: Cabeza superior
+      '############', // 3: Cara (ojos en cols 3 y 8)
+      '############', // 4: Cara
+      '############', // 5: Cuerpo
+      '############', // 6: Cuerpo
+      '############', // 7: Cuerpo
+      '############', // 8: Cuerpo inferior
+      '.##########.', // 9: Base del cuerpo
+      '############', // 10: Ondas inferiores
+      '#.##.##.##.#', // 11: Picos de sábana
+      '#..#....#..#', // 12: Detalle de picos
       '............', // 13: Base libre
     ],
   },

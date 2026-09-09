@@ -156,13 +156,17 @@
 }
 
 .lcd.is-canvas .lcd-view {
-  display: none;
+  visibility: hidden;
 }
 
 .lcd-canvas {
   display: none;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
+  visibility: visible;
   image-rendering: pixelated;
 }
 

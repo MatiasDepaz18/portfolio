@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Experiencia laboral · World Map (mockup)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ================================================================
+         TOKENS REALES DEL SITIO (styles.css · tema dark "Console")
+         ================================================================ */
+      :root {
+        color-scheme: dark;
+        --bg-base: #0b0f0d;
+        --bg-surface: #101511;
+        --bg-elevated: #161d17;
+        --bg-sunken: #070a08;
+        --ink: #e9eee3;
+        --ink-soft: #b7c0b1;
+        --ink-dim: #8a958a;
+        --line: #222b23;
+        --line-strong: #334034;
+        --accent: #86a80f;
+        --accent-ink: #0b0f0d;
+        --accent-soft: rgb(134 168 15 / 0.12);
+        --gold: #d9a441;
+        --gold-soft: rgb(217 164 65 / 0.12);
+        --focus: #b7d93a;
+        --font-display: 'Space Grotesk', system-ui, sans-serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+        --font-pixel: 'Press Start 2P', monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          repeating-linear-gradient(
+            to bottom,
+            rgb(0 0 0 / 0) 0,
+            rgb(0 0 0 / 0) 2px,
+            rgb(233 238 227 / 0.022) 2px,
+            rgb(233 238 227 / 0.022) 4px
+          ),
+          var(--bg-base);
+        color: var(--ink);
+        font-family: var(--font-display);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .wrap {
+        max-width: 1152px;
+        margin: 0 auto;
+        padding: 5rem 1rem 7rem;
+      }
+
+      /* ---------------- header (SectionShell) ---------------- */
+
+      .shell h1 {
+        margin: 0;
+        font-size: clamp(1.9rem, 4vw, 2.9rem);
+        font-weight: 720;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+
+      .shell .lede {
+        margin: 0.9rem 0 0;
+        max-width: 62ch;
+        color: var(--ink-dim);
+        line-height: 1.7;
+      }
+
+      .mock-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 1.4rem 0 0;
+        padding: 0.3rem 0.55rem;
+        font-family: var(--font-pixel);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        color: var(--gold);
+        background: var(--gold-soft);
+        border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+        --p: 4px;
+        clip-path: polygon(
+          0 var(--p),
+          var(--p) 0,
+          calc(100% - var(--p)) 0,
+          100% var(--p),
+          100% calc(100% - var(--p)),
+          calc(100% - var(--p)) 100%,
+          var(--p) 100%,
+          0 calc(100% - var(--p))
+        );
+      }
+
+      .mock-note code {
+        font-family: var(--font-mono);
+        color: var(--ink);
+      }
+
+      /* ================================================================
+         MAPA DE MUNDOS (SMB3) - banda horizontal
+         ================================================================ */
+
+      .map {
+        margin-top: 2.75rem;
+      }
+
+      .map-frame {
+        position: relative;
+        height: 264px;
+        background:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 34px 34px;
+        background-color: var(--bg-elevated);
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      /* ---------- riel horizontal (el camino) ---------- */
+
+      .rail {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 26px;
+        height: 40px;
+      }
+
+      /* base verde del camino */
+      .rail-bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 14px;
+        height: 14px;
+        background: var(--accent);
+        border-top: 2px solid #0b0f0d;
+        border-bottom: 2px solid #0b0f0d;
+        border-radius: 4px;
+        box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.18);
+      }
+
+      /* cadena de tallos que se va revelando con el scroll */
+      .stems {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        gap: 0;
+      }
+
+      .stem {
+        width: 18px;
+        height: 16px;
+        flex: 0 0 18px;
+        margin-right: -3px;
+        background: var(--accent);
+        border: 1px solid #0b0f0d;
+        border-radius: 4px;
+        opacity: 0;
+      }
+
+      /* cabeza de la Piraña (sprite real del sitio) */
+      .head {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 64px;
+        height: 64px;
+        margin-top: -6px;
+        z-index: 3;
+        filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.35));
+        animation: chomp 0.8s steps(1) infinite;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        image-rendering: pixelated;
+      }
+
+      @keyframes chomp {
+        0%,
+        49% {
+          background-image: url('src/assets/game/piraña/mouth/01.png');
+        }
+        50%,
+        100% {
+          background-image: url('src/assets/game/piraña/mouth/02.png');
+        }
+      }
+
+      /* ---------- START y bandera de meta ---------- */
+
+      .sign-start {
+        position: absolute;
+        left: 1.2rem;
+        top: -14px;
+        z-index: 2;
+        font-family: var(--font-pixel);
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        color: var(--accent-ink);
+        background: #e9eee3;
+        border: 2px solid #0b0f0d;
+        border-radius: 3px;
+        padding: 5px 7px;
+        box-shadow: 0 3px 0 rgb(0 0 0 / 0.4);
+      }
+
+      .flag {
+        position: absolute;
+        right: 1.2rem;
+        bottom: 2px;
+        z-index: 2;
+        opacity: 0.95;
+      }
+
+      /* ---------- conectores diagonales (caminos 45°) ---------- */
+
+      .map-link {
+        position: absolute;
+        bottom: 26px;
+        z-index: 1;
+        border-left: 2px solid #0b0f0d;
+        border-bottom: 2px solid #0b0f0d;
+      }
+
+      .map-link-1 {
+        left: 47%;
+        width: 34px;
+        height: 60px;
+        background: linear-gradient(
+          to bottom right,
+          transparent 0 49.5%,
+          var(--accent) 50% 100%
+        );
+      }
+
+      .map-link-2 {
+        left: 74.5%;
+        width: 38px;
+        height: 104px;
+        background: linear-gradient(
+          to bottom right,
+          transparent 0 49.5%,
+          var(--accent) 50% 100%
+        );
+      }
+
+      /* ---------- colinas (fortalezas elevadas) ---------- */
+
+      .hill {
+        position: absolute;
+        z-index: 1;
+        background:
+          repeating-linear-gradient(
+            0deg,
+            rgb(0 0 0 / 0.16) 0 2px,
+            transparent 2px 8px
+          ),
+          #2f7a20;
+        border: 2px solid #0b0f0d;
+        border-bottom: none;
+        border-radius: 48px 48px 0 0;
+      }
+
+      .hill-1 {
+        left: 42%;
+        bottom: 26px;
+        width: 120px;
+        height: 62px;
+      }
+
+      .hill-2 {
+        left: 69%;
+        bottom: 26px;
+        width: 128px;
+        height: 106px;
+      }
+
+      /* ---------- fortalezas (castillos pixel-art CSS) ---------- */
+
+      .castle {
+        position: absolute;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .castle-1 {
+        left: 16%;
+        bottom: 26px;
+        transform: translateX(-50%);
+      }
+
+      .castle-2 {
+        left: 50%;
+        bottom: 88px;
+        transform: translateX(-50%);
+      }
+
+      .castle-3 {
+        left: 81%;
+        bottom: 132px;
+        transform: translateX(-50%);
+      }
+
+      /* cartel "MUNDO N" */
+      .castle-sign {
+        font-family: var(--font-pixel);
+        font-size: 8px;
+        letter-spacing: 0.08em;
+        color: #0b0f0d;
+        background: #e9eee3;
+        border: 2px solid #0b0f0d;
+        border-radius: 3px;
+        padding: 5px 7px;
+        margin-bottom: 7px;
+        white-space: nowrap;
+        box-shadow: 0 3px 0 rgb(0 0 0 / 0.4);
+      }
+
+      .castle-1 .castle-sign {
+        background: #d9a441;
+      }
+
+      /* cuerpo del castillo */
+      .castle-art {
+        position: relative;
+        width: 58px;
+        height: 58px;
+      }
+
+      /* almenas */
+      .castle-art .battle {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 14px;
+        background: repeating-linear-gradient(
+          90deg,
+          #8a8f99 0 10px,
+          #575c66 10px 14px
+        );
+        border: 2px solid #2c2f38;
+        border-radius: 3px 3px 0 0;
+      }
+
+      /* cuerpo de ladrillos */
+      .castle-art .body {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 44px;
+        background:
+          repeating-linear-gradient(
+            0deg,
+            rgb(0 0 0 / 0.22) 0 2px,
+            transparent 2px 12px
+          ),
+          linear-gradient(180deg, #9aa0ab 0%, #747983 100%);
+        border: 2px solid #2c2f38;
+        border-radius: 3px 3px 0 0;
+      }
+
+      /* puerta en arco */
+      .castle-art .door {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 28px;
+        background: #26292f;
+        border: 2px solid #14161a;
+        border-bottom: none;
+        border-radius: 10px 10px 0 0;
+        box-shadow: inset 0 4px 0 rgb(0 0 0 / 0.5);
+      }
+
+      /* torreta lateral */
+      .castle-art .turret {
+        position: absolute;
+        left: -8px;
+        bottom: 0;
+        width: 14px;
+        height: 34px;
+        background: linear-gradient(180deg, #8a8f99 0%, #6a6f79 100%);
+        border: 2px solid #2c2f38;
+        border-radius: 3px 3px 0 0;
+      }
+
+      /* ---------- decoración del mapa ---------- */
+
+      .bush {
+        position: absolute;
+        bottom: 0;
+        width: 56px;
+        height: 24px;
+        background:
+          radial-gradient(circle at 30% 120%, #2a6b1e 0 45%, transparent 46%),
+          radial-gradient(circle at 70% 120%, #2a6b1e 0 45%, transparent 46%);
+        border-bottom: 2px solid #0b0f0d;
+      }
+
+      .bush-1 {
+        left: 30%;
+      }
+
+      .bush-2 {
+        right: 12%;
+      }
+
+      .qblock {
+        position: absolute;
+        right: 8%;
+        top: 20px;
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        background: var(--gold);
+        border: 2px solid #0b0f0d;
+        border-radius: 3px;
+        box-shadow:
+          inset 0 3px 0 rgb(255 255 255 / 0.35),
+          inset 0 -3px 0 rgb(0 0 0 / 0.25);
+        font-family: var(--font-pixel);
+        font-size: 14px;
+        color: #0b0f0d;
+        animation: block-float 2.4s ease-in-out infinite;
+      }
+
+      @keyframes block-float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
+      /* ================================================================
+         CARDS (debajo de cada fortaleza)
+         ================================================================ */
+
+      .cards {
+        margin-top: 2.5rem;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+      }
+
+      .card {
+        background: var(--bg-surface);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 1.4rem 1.5rem;
+        transition:
+          transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 0.25s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-3px);
+        border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+      }
+
+      .card-period {
+        margin: 0 0 0.7rem;
+        font-family: var(--font-pixel);
+        font-size: 8px;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+      }
+
+      .card-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+      }
+
+      .card-place {
+        margin: 0.3rem 0 0;
+        font-size: 0.82rem;
+        color: var(--ink-dim);
+        line-height: 1.6;
+      }
+
+      .card-bullets {
+        margin: 0.9rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+      }
+
+      .card-bullets li {
+        position: relative;
+        padding-left: 1rem;
+        font-size: 0.8rem;
+        line-height: 1.6;
+        color: var(--ink-soft);
+      }
+
+      .card-bullets li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.55em;
+        width: 0.4rem;
+        height: 3px;
+        background: var(--accent);
+      }
+
+      .card-coins {
+        margin-top: 1.1rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .coin {
+        width: 18px;
+        height: 18px;
+        background: url('src/assets/game/coins/coin-clean.png') center / 100%
+          100% no-repeat;
+        image-rendering: pixelated;
+      }
+
+      .coin-xp {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+
+      /* ================================================================
+         MOBILE (<768px): raíl vertical, cards apiladas
+         ================================================================ */
+
+      @media (max-width: 767px) {
+        .map-frame {
+          height: 190px;
+        }
+
+        .rail {
+          bottom: 14px;
+        }
+
+        .head {
+          width: 44px;
+          height: 44px;
+        }
+
+        .castle {
+          transform: translateX(-50%) scale(0.72);
+          transform-origin: bottom center;
+        }
+
+        .castle-1 {
+          bottom: 22px;
+        }
+
+        .castle-2 {
+          bottom: 58px;
+        }
+
+        .castle-3 {
+          bottom: 94px;
+        }
+
+        .map-link-1 {
+          left: 45%;
+          height: 42px;
+        }
+
+        .map-link-2 {
+          left: 72%;
+          height: 72px;
+        }
+
+        .hill-1 {
+          height: 46px;
+        }
+
+        .hill-2 {
+          height: 76px;
+        }
+
+        .qblock {
+          display: none;
+        }
+
+        .cards {
+          grid-template-columns: 1fr;
+        }
+
+        .bush-2 {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .head {
+          animation: none;
+        }
+
+        .qblock {
+          animation: none;
+        }
+
+        .stem {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- header (SectionShell) -->
+      <header class="shell">
+        <h1>Experiencia laboral</h1>
+        <p class="lede">
+          El recorrido hasta acá. Cada trabajo es una fortaleza en el mapa y la
+          Piraña avanza por el camino mientras scrolleás.
+        </p>
+        <span class="mock-note">
+          MOCKUP · datos de ejemplo — reemplazalos en
+          <code>src/app/data/experience.data.ts</code>
+        </span>
+      </header>
+
+      <!-- Mapa de mundos -->
+      <div class="map">
+        <div class="map-frame" id="mapFrame">
+          <!-- decoración -->
+          <div class="bush bush-1" aria-hidden="true"></div>
+          <div class="bush bush-2" aria-hidden="true"></div>
+          <div class="qblock" aria-hidden="true">?</div>
+
+          <!-- colinas de las fortalezas elevadas -->
+          <div class="hill hill-1" aria-hidden="true"></div>
+          <div class="hill hill-2" aria-hidden="true"></div>
+
+          <!-- conectores diagonales -->
+          <div class="map-link map-link-1" aria-hidden="true"></div>
+          <div class="map-link map-link-2" aria-hidden="true"></div>
+
+          <!-- riel -->
+          <div class="rail" aria-hidden="true">
+            <div class="rail-bar"></div>
+            <div class="stems" id="stems"></div>
+            <div class="head" id="head"></div>
+            <div class="sign-start">START</div>
+          </div>
+
+          <!-- fortalezas -->
+          <div class="castle castle-1">
+            <div class="castle-sign">MUNDO 1</div>
+            <div class="castle-art">
+              <div class="battle"></div>
+              <div class="body"></div>
+              <div class="door"></div>
+              <div class="turret"></div>
+            </div>
+          </div>
+
+          <div class="castle castle-2">
+            <div class="castle-sign">MUNDO 2</div>
+            <div class="castle-art">
+              <div class="battle"></div>
+              <div class="body"></div>
+              <div class="door"></div>
+              <div class="turret"></div>
+            </div>
+          </div>
+
+          <div class="castle castle-3">
+            <div class="castle-sign">MUNDO 3</div>
+            <div class="castle-art">
+              <div class="battle"></div>
+              <div class="body"></div>
+              <div class="door"></div>
+              <div class="turret"></div>
+            </div>
+          </div>
+
+          <!-- bandera de meta -->
+          <div class="flag" aria-hidden="true">
+            <svg width="44" height="60" viewBox="0 0 64 88" fill="none">
+              <path
+                d="M30 4 C24 16 28 34 26 44 C24 54 30 68 29 80 L35 80 C36 66 32 52 34 42 C36 30 32 16 36 4 Z"
+                fill="#334034"
+              />
+              <path d="M36 8 L60 18 L36 34 Z" fill="#86a80f" />
+              <path
+                d="M36 8 L60 18 L36 34 Z"
+                fill="#0b0f0d"
+                opacity="0.14"
+                transform="translate(3 2)"
+              />
+              <circle cx="32" cy="84" r="4.5" fill="#8a958a" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards de cada trabajo -->
+      <div class="cards">
+        <article class="card">
+          <p class="card-period">2021 — 2023</p>
+          <h3 class="card-title">Desarrollador Full Stack</h3>
+          <p class="card-place">Agencia digital · ejemplo</p>
+          <ul class="card-bullets">
+            <li>Apps web con Angular y Node, de idea a producción.</li>
+            <li>APIs REST integradas con sistemas de pago.</li>
+          </ul>
+          <div class="card-coins">
+            <span class="coin"></span><span class="coin"></span
+            ><span class="coin"></span>
+            <span class="coin-xp">EXP +240</span>
+          </div>
+        </article>
+
+        <article class="card">
+          <p class="card-period">2023 — 2025</p>
+          <h3 class="card-title">Ingeniero de Software</h3>
+          <p class="card-place">Producto fintech · ejemplo</p>
+          <ul class="card-bullets">
+            <li>Plataforma de datos con pipelines en tiempo real.</li>
+            <li>Lideré el rediseño de un módulo crítico para usuarios.</li>
+          </ul>
+          <div class="card-coins">
+            <span class="coin"></span><span class="coin"></span
+            ><span class="coin"></span><span class="coin"></span>
+            <span class="coin-xp">EXP +480</span>
+          </div>
+        </article>
+
+        <article class="card">
+          <p class="card-period">Actualidad</p>
+          <h3 class="card-title">Software Developer</h3>
+          <p class="card-place">En búsqueda activa / freelance</p>
+          <ul class="card-bullets">
+            <li>Angular y TypeScript, con foco en experiencia de usuario.</li>
+            <li>Datos e inteligencia artificial aplicados a problemas reales.</li>
+          </ul>
+          <div class="card-coins">
+            <span class="coin"></span><span class="coin"></span
+            ><span class="coin"></span><span class="coin"></span
+            ><span class="coin"></span>
+            <span class="coin-xp">EXP +999</span>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <script>
+      // Simulación del reveal con scroll (como el GSAP del sitio real).
+      // El mapa avanza: la cadena de tallos se revela de izquierda a
+      // derecha y la cabeza de la Piraña viaja sobre el riel.
+      (function () {
+        var frame = document.getElementById('mapFrame');
+        var stemsWrap = document.getElementById('stems');
+        var head = document.getElementById('head');
+        if (!frame || !stemsWrap || !head) return;
+
+        // genera la cadena de tallos
+        var count = 46;
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < count; i++) {
+          var s = document.createElement('div');
+          s.className = 'stem';
+          s.style.opacity = '0';
+          frag.appendChild(s);
+        }
+        stemsWrap.appendChild(frag);
+        var stems = stemsWrap.querySelectorAll('.stem');
+
+        var reduce =
+          window.matchMedia &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        var railW = function () {
+          return frame.clientWidth - 80;
+        };
+
+        function update() {
+          var r = frame.getBoundingClientRect();
+          var vh = window.innerHeight;
+          var start = vh * 0.85;
+          var end = vh * 0.45;
+          var p = (start - r.top) / (start - end + (r.bottom - r.top) * 0.4);
+          p = Math.max(0, Math.min(1, p));
+
+          for (var i = 0; i < stems.length; i++) {
+            var wave = p * stems.length - i;
+            stems[i].style.opacity = Math.max(0, Math.min(1, wave / 2)).toFixed(3);
+          }
+
+          head.style.transform = 'translateX(' + p * railW() + 'px)';
+        }
+
+        if (reduce) {
+          for (var j = 0; j < stems.length; j++) stems[j].style.opacity = '1';
+          head.style.transform = 'translateX(' + railW() + 'px)';
+          return;
+        }
+
+        var ticking = false;
+        window.addEventListener('scroll', function () {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(function () {
+              update();
+              ticking = false;
+            });
+          }
+        });
+        window.addEventListener('resize', update);
+        update();
+      })();
+    </script>
+  </body>
+</html>

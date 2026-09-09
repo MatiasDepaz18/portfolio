@@ -2,208 +2,550 @@
   display: block;
 }
 
-/* ============ desktop: curso horizontal ============ */
+/* ================================================================
+   Tablero de mundos (SMB3)
+   ================================================================ */
 
-.course {
+.world-map {
   position: relative;
-  margin-top: 3.25rem;
+  margin-top: 2.75rem;
 }
 
-.course-nodes {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-.course-node {
+.map-board {
   position: relative;
-  padding-left: 1.75rem;
-}
-
-.course-dot {
-  display: none;
-}
-
-.course-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--line);
+  aspect-ratio: 900 / 520;
+  width: 100%;
   border-radius: 6px;
-  padding: 1.4rem 1.5rem;
-  transition:
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.25s ease;
+  overflow: hidden;
+  border: 8px solid #000;
+  box-shadow:
+    0 10px 0 rgb(0 0 0 / 0.85),
+    0 18px 40px rgb(0 0 0 / 0.35);
+  background-color: #70c448;
+  background-image:
+    radial-gradient(#63b23c 18%, transparent 19%),
+    radial-gradient(#63b23c 18%, transparent 19%);
+  background-size: 56px 56px;
+  background-position: 0 0, 28px 28px;
 }
 
-.course-card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+/* Camino SVG */
+.map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.course-period {
+.map-path-under {
+  fill: none;
+  stroke: rgb(0 0 0 / 0.38);
+  stroke-width: 36;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.map-path {
+  fill: none;
+  stroke: #f8d878;
+  stroke-width: 26;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 26 18;
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.3));
+}
+
+/* Agua decorativa de la base del mapa */
+.map-water {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 9%;
+  z-index: 0;
+  background-color: #5c94fc;
+  background-image:
+    radial-gradient(#7cb0ff 20%, transparent 21%),
+    radial-gradient(#7cb0ff 20%, transparent 21%);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  border-top: 2px solid rgb(0 0 0 / 0.4);
+}
+
+/* Arbustos SMB3 (tres lomitas) */
+.map-bush {
+  position: absolute;
+  bottom: 13%;
+  width: 64px;
+  height: 26px;
+  z-index: 1;
+  background:
+    radial-gradient(50% 100% at 22% 100%, #2f7a20 0 92%, transparent 93%),
+    radial-gradient(50% 100% at 50% 100%, #2f7a20 0 92%, transparent 93%),
+    radial-gradient(50% 100% at 78% 100%, #2f7a20 0 92%, transparent 93%);
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.25));
+}
+
+.map-bush-1 {
+  left: 16%;
+}
+
+.map-bush-2 {
+  right: 4%;
+}
+
+/* Bloque "?" flotante */
+.map-block {
+  position: absolute;
+  right: 6%;
+  top: 7%;
+  width: 40px;
+  height: 40px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-pixel);
+  font-size: 18px;
+  color: #0b0f0d;
+  background: #d9a441;
+  border: 3px solid #000;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 4px 0 rgb(255 255 255 / 0.4),
+    inset 0 -4px 0 rgb(0 0 0 / 0.3);
+  animation: block-float 2.6s ease-in-out infinite;
+}
+
+@keyframes block-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Signpost START y bandera de meta */
+.map-start {
+  position: absolute;
+  left: 7.8%;
+  top: 82.7%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  color: #0b0f0d;
+  background: #f8d878;
+  border: 2px solid #000;
+  border-radius: 3px;
+  padding: 5px 7px;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 0.4);
+  white-space: nowrap;
+}
+
+.map-flag {
+  position: absolute;
+  left: 7.8%;
+  top: 17.3%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+/* ================================================================
+   Personaje (Yoshi)
+   ================================================================ */
+
+/* Parqueo estático en START (fallback SSR / sin GSAP). El posicionamiento
+   es en % (igual que los castillos): al achicar el navegador, Yoshi escala
+   con el tablero y nunca se desvía del camino. */
+.map-character {
+  position: absolute;
+  left: 7.8%;
+  top: 82.7%;
+  transform: translate(-50%, -85%);
+  width: 56px;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.35));
+  will-change: transform;
+}
+
+.map-character-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%);
+  width: 74%;
+  height: 0.55rem;
+  border-radius: 9999px;
+  background: radial-gradient(ellipse, rgb(0 0 0 / 0.5), transparent 72%);
+}
+
+/* ================================================================
+   Fortalezas (botones sobre el camino)
+   ================================================================ */
+
+.map-node {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.map-node:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.map-node-castle {
+  width: 54px;
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.35));
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.map-node:hover .map-node-castle,
+.map-node:focus-visible .map-node-castle {
+  transform: scale(1.06);
+}
+
+.map-node.is-active .map-node-castle {
+  transform: scale(1.12);
+}
+
+.map-node-label {
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-align: center;
+  color: #0b0f0d;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 3px;
+  padding: 3px 6px;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.35);
+  max-width: 118px;
+}
+
+.map-node.is-active .map-node-label {
+  background: #86a80f;
+}
+
+/* ================================================================
+   Cuadro de diálogo estilo Mario (overlay dentro del mapa)
+   ================================================================ */
+
+/* Hint central cuando no hay selección (no bloquea el mapa) */
+.map-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: #3b2413;
+  background: #f5edc8;
+  border: 2px solid #3b2413;
+  border-radius: 8px;
+  padding: 9px 13px;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 0.35);
+  opacity: 0.92;
+  white-space: nowrap;
+}
+
+/* Overlay del diálogo: scrim oscuro sobre el mapa. La opacidad se
+   ajusta acá (--dialog-scrim) para lograr el look de cuadro de juego. */
+.map-dialog {
+  --dialog-scrim: rgb(0 0 0 / 0.55);
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: var(--dialog-scrim);
+  animation: dialog-fade 0.2s ease;
+}
+
+@keyframes dialog-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Caja de mensaje clásica de Mario Bros: crema + borde marrón grueso
+   con doble outline NES. Paleta fija (vive sobre el tablero verde). */
+.map-dialog-box {
+  --dg-ink: #3b2413;
+  --dg-dim: #6d4a26;
+  --dg-soft: #4a2c17;
+  --dg-accent: #8c2f12;
+  --dg-cream-dark: #eadfae;
+
+  position: relative;
+  width: min(620px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  outline: none;
+  background: #f5edc8;
+  color: var(--dg-soft);
+  border: 3px solid var(--dg-ink);
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 3px #f5edc8,
+    0 0 0 6px var(--dg-ink),
+    0 12px 0 rgb(0 0 0 / 0.35),
+    0 18px 40px rgb(0 0 0 / 0.45);
+  padding: 1.35rem 1.5rem 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dg-accent) transparent;
+  animation: dialog-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.map-dialog-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.map-dialog-box::-webkit-scrollbar-thumb {
+  background: var(--dg-accent);
+  border-radius: 3px;
+}
+
+@keyframes dialog-pop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.map-dialog-close {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  line-height: 1;
+  color: #f5edc8;
+  background: var(--dg-ink);
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.map-dialog-close:hover,
+.map-dialog-close:focus-visible {
+  background: var(--dg-accent);
+}
+
+/* Header: logo cuadrado (retrato) + título + empresa + periodo */
+.map-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+  padding-right: 2.2rem;
+}
+
+.map-dialog-logo {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--dg-cream-dark);
+  border: 3px solid var(--dg-ink);
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.35);
+}
+
+.map-dialog-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.map-dialog-logo-initial {
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  color: var(--dg-ink);
+}
+
+.map-dialog-period {
+  margin: 0 0 0.4rem;
   font-family: var(--font-pixel);
   font-size: 8px;
   letter-spacing: 0.14em;
-  color: var(--accent);
-  margin-bottom: 0.7rem;
+  color: var(--dg-accent);
 }
 
-.course-card-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.01em;
+.map-dialog-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 720;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--dg-ink);
 }
 
-.course-place {
-  margin-top: 0.3rem;
-  font-size: 0.82rem;
-  color: var(--ink-dim);
+.map-dialog-place {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  color: var(--dg-dim);
+}
+
+.map-dialog-desc {
+  margin: 0.95rem 0 0;
+  font-size: 0.95rem;
   line-height: 1.6;
+  color: var(--dg-soft);
 }
 
-.course-bullets {
-  margin-top: 0.9rem;
+.map-dialog-bullets {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.5rem;
 }
 
-.course-bullets li {
+.map-dialog-bullets li {
   position: relative;
-  padding-left: 1rem;
-  font-size: 0.8rem;
-  line-height: 1.6;
-  color: var(--ink-soft);
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--dg-soft);
 }
 
-.course-bullets li::before {
+.map-dialog-bullets li::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 0.55em;
-  width: 0.4rem;
+  top: 0.6em;
+  width: 0.45rem;
   height: 3px;
-  background: var(--accent);
+  background: var(--dg-accent);
 }
 
-.course-stem {
-  display: none;
+.map-dialog-tech {
+  margin: 1.1rem 0 0;
+  padding: 0.95rem 0 0;
+  border-top: 3px solid rgb(59 36 19 / 0.25);
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
-/* ============ desktop: tallos ============ */
-
-@media (min-width: 768px) {
-  .course {
-    padding-bottom: 4.5rem;
-  }
-
-  .course-nodes {
-    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-    gap: 1.25rem;
-  }
-
-  .course-node {
-    padding-left: 0;
-    padding-bottom: 2.75rem;
-  }
-
-  .course-dot {
-    display: block;
-    position: absolute;
-    left: 50%;
-    bottom: 1.05rem;
-    transform: translateX(-50%);
-    width: 1rem;
-    height: 1rem;
-    border-radius: 9999px;
-    background: var(--bg-elevated);
-    border: 3px solid var(--accent);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent);
-  }
-
-  /* Tallo de la Piraña: fila de tallos 01 que se van creando con el
-     scroll (opacidad por pieza, posiciones en la timeline de TS). Sin
-     GSAP (reduced motion) quedan todos visibles. */
-  .course-stem {
-    /* TUNEO MANUAL de los tallos 01:
-       --stem-piece-w: ancho de cada tallo en px (tamaño de la planta).
-       --stem-pitch: separación entre tallos en px. Más chico = más
-         juntos (con --stem-pitch < ancho de la planta se superponen).
-       --stem-reveal-lead: px ANTES de que la ola de revelado llegue
-         aparece el tallo.
-       --stem-reveal-dur: px de ola que tarda cada tallo en aparecer
-         (más chico = aparece de golpe).
-       La cantidad de tallos se recalcula sola (trajectory.ts) para
-       llenar el recorrido con ese pitch. */
-    --stem-piece-w: 36px;
-    --stem-pitch: 14px;
-    --stem-reveal-lead: 8px;
-    --stem-reveal-dur: 4px;
-    display: flex;
-    align-items: flex-end;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 1.5rem;
-  }
-
-  /* Fila de tallos 01: tamaño fijo por pieza; el margen negativo cierra
-     la separación (pitch = --stem-piece-w - |margin|). */
-  .course-stem-row {
-    display: flex;
-    align-items: flex-end;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .course-stem-piece {
-    width: var(--stem-piece-w);
-    flex: 0 0 var(--stem-piece-w);
-    margin-right: calc(var(--stem-pitch) - var(--stem-piece-w));
-  }
-
-  /* Boca (mouth/01 <-> mouth/02): viaja con GSAP (x) sobre el último
-     tallo 01 generado, intercalando la mordida sin parar. */
-  .course-head {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 2.6rem;
-    z-index: 1;
-    opacity: 0.9;
-    will-change: transform;
-  }
+.map-dialog-tech-item {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dg-ink);
+  background: var(--dg-cream-dark);
+  border: 1px solid rgb(59 36 19 / 0.55);
+  border-radius: 4px;
+  padding: 0.3rem 0.55rem;
 }
 
-/* ============ mobile: raíl vertical ============ */
+/* ================================================================
+   Mobile + reduced motion
+   ================================================================ */
 
 @media (max-width: 767px) {
-  .course {
-    padding-bottom: 0;
+  .map-board {
+    border-width: 5px;
+    box-shadow:
+      0 6px 0 rgb(0 0 0 / 0.85),
+      0 12px 24px rgb(0 0 0 / 0.3);
   }
 
-  .course-node {
-    padding-left: 1.9rem;
-    padding-bottom: 0;
-  }
-
-  .course-dot {
-    display: block;
-    position: absolute;
-    left: -1.45rem;
-    top: 1.6rem;
-    width: 0.9rem;
-    height: 0.9rem;
-    border-radius: 9999px;
-    background: var(--bg-elevated);
-    border: 3px solid var(--accent);
-  }
-
-  .course-stem {
+  .map-node-label,
+  .map-start,
+  .map-flag,
+  .map-block,
+  .map-hint {
     display: none;
   }
 
-  .course-stem-piece {
+  .map-node-castle {
+    width: 42px;
+  }
+
+  .map-character {
+    width: 44px;
+  }
+
+  .map-bush-2 {
     display: none;
+  }
+
+  /* En mobile el tablero es chico: el diálogo pasa a full-screen. */
+  .map-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    padding: 1rem;
+    background: var(--dialog-scrim);
+  }
+
+  .map-dialog-box {
+    width: 100%;
+    max-height: 100%;
+    padding: 1.2rem 1.15rem 1.3rem;
+  }
+
+  .map-dialog-head {
+    gap: 0.9rem;
+  }
+
+  .map-dialog-logo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .map-dialog-title {
+    font-size: 1.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-block {
+    animation: none;
+  }
+
+  .map-dialog,
+  .map-dialog-box {
+    animation: none;
   }
 }
