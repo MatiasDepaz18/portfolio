@@ -1,0 +1,219 @@
+<div class="ds-scrim" (click)="close()">
+  <div
+    class="ds-box pixel-corners"
+    #box
+    tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title()"
+    (click)="$event.stopPropagation()"
+    (keydown)="onKeydown($event)"
+  >
+    <header class="ds-head">
+      <p class="ds-title">{{ title() }}</p>
+      <button type="button" class="ds-close pixel-corners" (click)="close()" aria-label="Cerrar">
+        <ng-icon name="phosphorX" />
+      </button>
+    </header>
+
+    <div class="ds-stage" #stage>
+      <div
+        class="ds-scaler"
+        [style.width.px]="consoleWidth * scale()"
+        [style.height.px]="consoleHeight * scale()"
+      >
+        <main
+          class="console"
+          [class.is-off]="!powerOn()"
+          [style.transform]="'scale(' + scale() + ')'"
+        >
+          <!-- Parte superior -->
+          <section class="top">
+            <div class="camera" aria-hidden="true"></div>
+            <div class="sensor left" aria-hidden="true"></div>
+            <div class="sensor right" aria-hidden="true"></div>
+            <div class="speaker left" aria-hidden="true"></div>
+            <div class="speaker right" aria-hidden="true"></div>
+            <div class="top-label left" aria-hidden="true">VOL.<br />○ ○</div>
+            <div class="top-label right" aria-hidden="true">3D<br />OFF</div>
+
+            <div class="screen-frame top-screen">
+              <div class="screen top-lcd">
+                @if (!powerOn()) {
+                  <div class="screen-off">
+                    <span class="screen-off-brand">NINTENDO 3DS</span>
+                    <span class="screen-off-hint">POWER</span>
+                  </div>
+                } @else if (slides().length) {
+                  @for (slide of slides(); track slide.key) {
+                    <img class="screen-photo" [src]="slide.src" [alt]="slide.alt" />
+                  }
+                  <span class="screen-count">{{ counter() }}</span>
+                } @else {
+                  <div class="screen-off">
+                    <span class="screen-off-brand">SIN FOTOS</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+
+          <!-- Bisagra -->
+          <div class="hinge" aria-hidden="true"></div>
+
+          <!-- Parte inferior -->
+          <section class="bottom">
+            <div class="screen-frame bottom-screen">
+              <div class="screen bottom-lcd">
+                @if (!powerOn()) {
+                  <div class="screen-off">
+                    <span class="screen-off-brand">3DS</span>
+                  </div>
+                } @else {
+                  <div class="screen-ui">
+                    <span class="screen-eyebrow">LOGRO DESBLOQUEADO</span>
+                    <span class="screen-degree">{{ title() }}</span>
+                    @if (caption()) {
+                      <span class="screen-caption">{{ caption() }}</span>
+                    }
+                    <span class="screen-counter">{{ counter() }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Stick analógico -->
+            <div
+              class="analog"
+              #analog
+              [class.dragging]="dragging()"
+              (pointerdown)="onAnalogDown($event)"
+              (pointermove)="onAnalogMove($event)"
+              (pointerup)="onAnalogUp()"
+              (pointercancel)="onAnalogUp()"
+            >
+              <div class="analog-stick" [style.transform]="stickTransform()"></div>
+            </div>
+
+            <!-- Cruceta -->
+            <div class="dpad">
+              <button
+                type="button"
+                class="dpad-up"
+                [class.active]="activeButton() === 'D-PAD UP'"
+                (click)="onButton('D-PAD UP')"
+                aria-label="Cruceta arriba"
+              ></button>
+              <button
+                type="button"
+                class="dpad-down"
+                [class.active]="activeButton() === 'D-PAD DOWN'"
+                (click)="onButton('D-PAD DOWN')"
+                aria-label="Cruceta abajo"
+              ></button>
+              <button
+                type="button"
+                class="dpad-left"
+                [class.active]="activeButton() === 'D-PAD LEFT'"
+                (click)="onButton('D-PAD LEFT')"
+                aria-label="Cruceta izquierda"
+              ></button>
+              <button
+                type="button"
+                class="dpad-right"
+                [class.active]="activeButton() === 'D-PAD RIGHT'"
+                (click)="onButton('D-PAD RIGHT')"
+                aria-label="Cruceta derecha"
+              ></button>
+              <div class="dpad-center" aria-hidden="true"></div>
+            </div>
+
+            <!-- Botones A/B/X/Y -->
+            <div class="action-buttons">
+              <button
+                type="button"
+                class="action-button button-y"
+                [class.active]="activeButton() === 'Y'"
+                (click)="onButton('Y')"
+                aria-label="Botón Y"
+              >
+                Y
+              </button>
+              <button
+                type="button"
+                class="action-button button-x"
+                [class.active]="activeButton() === 'X'"
+                (click)="onButton('X')"
+                aria-label="Botón X"
+              >
+                X
+              </button>
+              <button
+                type="button"
+                class="action-button button-a"
+                [class.active]="activeButton() === 'A'"
+                (click)="onButton('A')"
+                aria-label="Botón A"
+              >
+                A
+              </button>
+              <button
+                type="button"
+                class="action-button button-b"
+                [class.active]="activeButton() === 'B'"
+                (click)="onButton('B')"
+                aria-label="Botón B"
+              >
+                B
+              </button>
+            </div>
+
+            <!-- START / SELECT -->
+            <div class="system-buttons">
+              <button
+                type="button"
+                class="system-button"
+                [class.active]="activeButton() === 'START'"
+                (click)="onButton('START')"
+                aria-label="Start"
+              >
+                START
+              </button>
+              <button
+                type="button"
+                class="system-button"
+                [class.active]="activeButton() === 'SELECT'"
+                (click)="onButton('SELECT')"
+                aria-label="Select"
+              >
+                SELECT
+              </button>
+            </div>
+
+            <!-- HOME -->
+            <button
+              type="button"
+              class="home-button"
+              [class.active]="activeButton() === 'HOME'"
+              (click)="onButton('HOME')"
+              aria-label="Home"
+            ></button>
+
+            <!-- POWER -->
+            <button
+              type="button"
+              class="power"
+              [class.active]="activeButton() === 'POWER'"
+              (click)="onButton('POWER')"
+              aria-label="Power"
+            ></button>
+          </section>
+        </main>
+
+        <div class="ds-toast" [class.is-visible]="toast()" aria-hidden="true">{{ toast() }}</div>
+      </div>
+    </div>
+
+    <p class="ds-hint" aria-hidden="true">◀ ▶ cambiar foto · A siguiente · B salir</p>
+  </div>
+</div>

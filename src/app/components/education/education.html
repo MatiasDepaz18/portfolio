@@ -1,28 +1,66 @@
 <app-section-shell
   id="education"
   title="Educación"
-  lede="Mis logros académicos, desbloqueados."
+  lede="Lo que estudié y cómo lo viví: tocá el título para recorrer la facultad."
 >
-  <div class="achievements">
+  <div class="diplomas">
     @for (e of entries; track e.degree) {
-      <article class="achievement pixel-corners" appReveal>
-        <header class="achievement-head">
-          <div class="achievement-coin" aria-hidden="true">
-            <div class="achievement-coin-sprite"></div>
-          </div>
-          <div class="achievement-titles">
+      <article
+        class="diploma pixel-corners"
+        appReveal
+        [attr.role]="hasImages(e) ? 'button' : null"
+        [attr.tabindex]="hasImages(e) ? 0 : null"
+        [attr.aria-label]="hasImages(e) ? 'Abrir fotos de ' + e.degree : null"
+        (click)="open(e)"
+        (keydown)="onCardKeydown($event, e)"
+      >
+        <header class="diploma-head">
+          @if (e.image) {
+            <span class="diploma-thumb">
+              <img [src]="e.image" [alt]="e.imageAlt ?? e.degree" loading="lazy" />
+              <span class="diploma-thumb-hint" aria-hidden="true">
+                <ng-icon name="phosphorEye" />
+              </span>
+            </span>
+          } @else {
+            <span class="diploma-thumb diploma-thumb-empty" aria-hidden="true">
+              <span class="diploma-thumb-pixel">TÍTULO</span>
+            </span>
+          }
+
+          <div class="diploma-titles">
             <app-badge variant="gold">LOGRO DESBLOQUEADO</app-badge>
-            <h3 class="achievement-degree">{{ e.degree }}</h3>
-            <p class="achievement-institution">{{ e.institution }}</p>
+            <h3 class="diploma-degree">{{ e.degree }}</h3>
+            <p class="diploma-institution">{{ e.institution }}</p>
+            <p class="diploma-period">
+              <span class="diploma-coin" aria-hidden="true"></span>
+              {{ e.period }}
+            </p>
           </div>
-          <span class="achievement-period">{{ e.period }}</span>
         </header>
-        <ul class="achievement-bullets">
+
+        <ul class="diploma-bullets">
           @for (b of e.bullets; track b) {
             <li>{{ b }}</li>
           }
         </ul>
+
+        @if (hasImages(e)) {
+          <p class="diploma-hint" aria-hidden="true">
+            <ng-icon name="phosphorEye" />
+            Ver fotos de la facultad
+          </p>
+        }
       </article>
     }
   </div>
 </app-section-shell>
+
+@if (selected(); as s) {
+  <app-three-ds
+    [title]="s.degree"
+    [images]="imagesFor(s)"
+    [captions]="s.photoCaptions ?? []"
+    (closed)="close()"
+  />
+}
