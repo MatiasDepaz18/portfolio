@@ -37,7 +37,6 @@ export const educationEntries: Education[] = [
      imageAlt: 'Título de Ingeniero en Computación',
     photos: [
       'assets/education/facultad.webp',
-      'assets/education/titulo.webp',
     ],
     // photoCaptions: [
     //   'Título de grado · UNT',

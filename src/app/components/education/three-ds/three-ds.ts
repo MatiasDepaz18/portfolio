@@ -41,6 +41,11 @@ export function clampAnalog(x: number, y: number, max: number): { x: number; y: 
   return { x: (x / dist) * max, y: (y / dist) * max };
 }
 
+/** Limita un ángulo al rango [min, max]. */
+export function clampAngle(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
 /**
  * Nintendo 3DS dibujada 100% en HTML/CSS, como modal de Educación.
  *
@@ -51,6 +56,14 @@ export function clampAnalog(x: number, y: number, max: number): { x: number; y: 
  *   SELECT/HOME quedan listos para conectar un juego/emulador vía la
  *   salida `press`. El stick analógico se arrastra y emite por `analog`.
  * - POWER enciende/apaga las pantallas.
+ * - La consola se rota con el mouse (arrastrar sobre la carcasa); al
+ *   soltar vuelve sola al ángulo original.
+ *
+ * Intro clamshell 3D: la consola es una caja con espesor (tapa y base)
+ * y la escena mira desde arriba; el modal monta solo la consola cerrada,
+ * la tapa gira en perspectiva (la cámara se endereza) y las pantallas
+ * "bootean". Al cerrar (B/X/ESC/click afuera) la tapa se pliega y recién
+ * entonces se desmonta.
  *
  * El componente se comporta como modal (scrim, ESC/click afuera/X,
  * trap de foco y bloqueo de scroll) y escala la consola al espacio
@@ -80,17 +93,47 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly index = signal(0);
-  protected readonly powerOn = signal(true);
+  protected readonly powerOn = signal(false);
   protected readonly activeButton = signal<ThreeDsButton | null>(null);
   protected readonly toast = signal('');
   protected readonly scale = signal(1);
   protected readonly dragging = signal(false);
   protected readonly stick = signal({ x: 0, y: 0 });
+  /** Tapa del clamshell: arranca cerrada y se abre en la intro. */
+  protected readonly lidOpen = signal(false);
+  /** Cierre en curso: deshabilita interacción mientras la tapa se pliega. */
+  protected readonly closing = signal(false);
+  /** Rotación libre del usuario (grados): X pitch, Y yaw. */
+  protected readonly orbitX = signal(0);
+  protected readonly orbitY = signal(0);
+  /** Arrastre de rotación en curso. */
+  protected readonly orbiting = signal(false);
 
   /** New 3DS XL a 3,85 px/mm: 160×93,5 mm por mitad. */
   protected readonly consoleWidth = 616;
   protected readonly consoleHeight = 720;
   private readonly slideSeq = signal(0);
+
+  /** Capas intermedias del canto de la tapa (espesor 38px, paso ~4,5px). */
+  protected readonly lidLayers = [4.5, 9, 13.5, 18, 22.5, 27, 31.5];
+
+  /** Capas intermedias del canto de la base (espesor 42px, paso 7px). */
+  protected readonly baseLayers = [-14, -7, 0, 7, 14];
+
+  /** Rotación con el mouse: sensibilidad, límites y duración del snap. */
+  private readonly orbitSensitivity = 0.35;
+  private readonly orbitMinX = -20;
+  private readonly orbitMaxX = 35;
+  private readonly orbitMaxY = 40;
+  private readonly orbitSnapMs = 500;
+
+  /** Timing de la intro (consola cerrada → tapa → boot) y del cierre. */
+  private readonly introDelayMs = 350;
+  private readonly lidOpenMs = 850;
+  private readonly lidCloseMs = 650;
+  private readonly bootExtraMs = 150;
+  /** Margen de seguridad al medir el stage (sombra y proyección 3D). */
+  private readonly stageSafety = 80;
 
   protected readonly current = computed(() => this.images()[this.index()] ?? '');
   protected readonly caption = computed(() => this.captions()[this.index()] ?? '');
@@ -105,6 +148,9 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
     const { x, y } = this.stick();
     return `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
   });
+  protected readonly orbitTransform = computed(
+    () => `rotateX(${this.orbitX()}deg) rotateY(${this.orbitY()}deg)`,
+  );
 
   private readonly keyMap: Record<string, ThreeDsButton> = {
     ArrowUp: 'D-PAD UP',
@@ -129,6 +175,11 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
   private resizeObserver: ResizeObserver | null = null;
   private flashTimer: ReturnType<typeof setTimeout> | null = null;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private openTimer: ReturnType<typeof setTimeout> | null = null;
+  private bootTimer: ReturnType<typeof setTimeout> | null = null;
+  private closeTimer: ReturnType<typeof setTimeout> | null = null;
+  private orbitStart: { x: number; y: number; tx: number; ty: number } | null = null;
+  private snapTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -136,6 +187,7 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
     document.body.style.overflow = 'hidden';
     this.boxRef.nativeElement.focus();
     this.observeStage();
+    this.startIntro();
   }
 
   ngOnDestroy(): void {
@@ -143,6 +195,9 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
     this.resizeObserver = null;
     if (this.flashTimer) clearTimeout(this.flashTimer);
     if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.clearIntroTimers();
+    if (this.closeTimer) clearTimeout(this.closeTimer);
+    if (this.snapTimer) clearTimeout(this.snapTimer);
     if (isPlatformBrowser(this.platformId)) {
       document.body.style.overflow = '';
       this.previousFocus?.focus();
@@ -150,10 +205,48 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
   }
 
   close(): void {
-    this.closed.emit();
+    if (this.closing()) return;
+    this.closing.set(true);
+    this.powerOn.set(false);
+    this.clearIntroTimers();
+    if (this.reducedMotion() || !this.lidOpen()) {
+      this.closed.emit();
+      return;
+    }
+    this.lidOpen.set(false);
+    this.closeTimer = setTimeout(() => this.closed.emit(), this.lidCloseMs);
+  }
+
+  /** Intro: la consola aparece cerrada, abre la tapa y enciende pantallas. */
+  private startIntro(): void {
+    if (this.reducedMotion()) {
+      this.lidOpen.set(true);
+      this.powerOn.set(true);
+      return;
+    }
+    this.openTimer = setTimeout(() => this.lidOpen.set(true), this.introDelayMs);
+    this.bootTimer = setTimeout(
+      () => this.powerOn.set(true),
+      this.introDelayMs + this.lidOpenMs + this.bootExtraMs,
+    );
+  }
+
+  private reducedMotion(): boolean {
+    return (
+      isPlatformBrowser(this.platformId) &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+  }
+
+  private clearIntroTimers(): void {
+    if (this.openTimer) clearTimeout(this.openTimer);
+    if (this.bootTimer) clearTimeout(this.bootTimer);
+    this.openTimer = null;
+    this.bootTimer = null;
   }
 
   protected togglePower(): void {
+    if (this.closing()) return;
     this.powerOn.update((v) => !v);
   }
 
@@ -173,6 +266,7 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
 
   /** Punto único de interacción; conectable a un juego a futuro. */
   protected onButton(name: ThreeDsButton): void {
+    if (this.closing()) return;
     this.press.emit(name);
     this.flash(name);
     switch (name) {
@@ -217,6 +311,7 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
   }
 
   protected onAnalogDown(event: PointerEvent): void {
+    if (this.closing()) return;
     this.dragging.set(true);
     (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
     this.moveAnalog(event.clientX, event.clientY);
@@ -232,6 +327,44 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
     this.dragging.set(false);
     this.stick.set({ x: 0, y: 0 });
     this.analog.emit({ x: 0, y: 0 });
+  }
+
+  protected onOrbitDown(event: PointerEvent): void {
+    if (this.closing() || this.snapTimer) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('button, .analog')) return;
+    this.orbitStart = {
+      x: event.clientX,
+      y: event.clientY,
+      tx: this.orbitX(),
+      ty: this.orbitY(),
+    };
+    this.orbiting.set(true);
+    target.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+  }
+
+  protected onOrbitMove(event: PointerEvent): void {
+    if (!this.orbiting() || !this.orbitStart) return;
+    const dx = event.clientX - this.orbitStart.x;
+    const dy = event.clientY - this.orbitStart.y;
+    this.orbitY.set(
+      clampAngle(this.orbitStart.ty + dx * this.orbitSensitivity, -this.orbitMaxY, this.orbitMaxY),
+    );
+    this.orbitX.set(
+      clampAngle(this.orbitStart.tx - dy * this.orbitSensitivity, this.orbitMinX, this.orbitMaxX),
+    );
+  }
+
+  protected onOrbitUp(): void {
+    if (!this.orbiting()) return;
+    this.orbiting.set(false);
+    this.orbitStart = null;
+    this.orbitX.set(0);
+    this.orbitY.set(0);
+    this.snapTimer = setTimeout(() => {
+      this.snapTimer = null;
+    }, this.orbitSnapMs);
   }
 
   private moveAnalog(clientX: number, clientY: number): void {
@@ -261,8 +394,8 @@ export class ThreeDS implements AfterViewInit, OnDestroy {
     const stage = this.stageRef.nativeElement;
     const measure = () => {
       const ratio = Math.min(
-        stage.clientWidth / this.consoleWidth,
-        stage.clientHeight / this.consoleHeight,
+        (stage.clientWidth - this.stageSafety) / this.consoleWidth,
+        (stage.clientHeight - this.stageSafety) / this.consoleHeight,
       );
       this.scale.set(Math.max(0.28, Math.min(3, ratio)));
     };

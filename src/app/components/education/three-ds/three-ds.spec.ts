@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampAnalog, wrapIndex } from './three-ds';
+import { clampAnalog, clampAngle, wrapIndex } from './three-ds';
 
 describe('wrapIndex', () => {
   it('envuelve el índice dentro del rango', () => {
@@ -29,5 +29,20 @@ describe('clampAnalog', () => {
 
   it('mantiene el centro quieto', () => {
     expect(clampAnalog(0, 0, 15)).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe('clampAngle', () => {
+  it('deja pasar ángulos dentro del rango', () => {
+    expect(clampAngle(10, -20, 35)).toBe(10);
+    expect(clampAngle(-20, -20, 35)).toBe(-20);
+    expect(clampAngle(35, -20, 35)).toBe(35);
+  });
+
+  it('recorta en los topes', () => {
+    expect(clampAngle(90, -20, 35)).toBe(35);
+    expect(clampAngle(-90, -20, 35)).toBe(-20);
+    expect(clampAngle(50, -40, 40)).toBe(40);
+    expect(clampAngle(-50, -40, 40)).toBe(-40);
   });
 });

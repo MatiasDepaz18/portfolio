@@ -8,55 +8,29 @@
   position: fixed;
   inset: 0;
   z-index: 40;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 1.25rem;
   background: #000000b8;
   animation: ds-fade 0.2s ease;
-}
-
-.ds-box {
-  position: relative;
-  width: min(1200px, 100%);
-  height: min(96vh, 100%);
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-surface);
-  border: 2px solid color-mix(in srgb, var(--gold) 55%, var(--line));
-  --p: 14px;
-  padding: 1rem;
   outline: none;
-  animation: ds-fade 0.25s ease;
-}
-
-.ds-head {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding-right: 2.2rem;
-}
-
-.ds-title {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 720;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  color: var(--ink);
 }
 
 .ds-close {
   position: absolute;
-  top: 0.8rem;
-  right: 0.8rem;
+  top: 1rem;
+  right: 1rem;
+  z-index: 50;
   width: 1.7rem;
   height: 1.7rem;
   display: grid;
   place-items: center;
   font-size: 1rem;
-  color: var(--ink);
-  background: var(--bg-sunken);
-  border: 1px solid var(--line-strong);
+  color: #ffffffd9;
+  background: #00000099;
+  border: 1px solid #ffffff4d;
   cursor: pointer;
 }
 
@@ -67,18 +41,19 @@
 }
 
 .ds-stage {
-  position: relative;
+  width: 100%;
   flex: 1;
   min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  margin-top: 0.75rem;
+  padding: 1.25rem 1.25rem 0.75rem;
 }
 
 .ds-scaler {
   position: relative;
+  filter: drop-shadow(0 20px 22px #00000073);
 }
 
 .ds-toast {
@@ -104,13 +79,13 @@
 }
 
 .ds-hint {
-  margin: 0.6rem 0 0;
+  margin: 0.6rem 0 1rem;
   text-align: center;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-dim);
+  color: #ffffffb3;
 }
 
 /* ---------------------------- consola ---------------------------- */
@@ -120,12 +95,103 @@
   width: 616px;
   height: 720px;
   transform-origin: top left;
+  perspective: 1600px;
   font-family: Arial, sans-serif;
   user-select: none;
-  filter: drop-shadow(0 20px 22px #00000073);
+}
+
+/* ---------------------------- escena 3D ---------------------------- */
+
+/*
+ * Caja 3D de la New 3DS XL a escala (3,85 px/mm). La escena mira desde
+ * arriba (cámara picada) y se endereza al abrir; el eje de la bisagra
+ * está en el plano frontal de la base (z = 21px), así al cerrar la tapa
+ * apoya encima de la base con las pantallas enfrentadas.
+ * Espesores: tapa 38px, base 42px (~10 y ~11 mm).
+ */
+
+.scene {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(20deg);
+  transition: transform 0.7s cubic-bezier(0.55, 0, 0.68, 1);
+}
+
+/* Al abrir, la cámara arranca 120ms después de la tapa (parallax). */
+.scene.is-open {
+  transform: rotateX(6deg);
+  transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.12s;
+}
+
+/* Órbita del usuario: arrastrar rota la consola; al soltar vuelve
+   sola al ángulo original con una transición suave. */
+.orbit {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  touch-action: none;
+  cursor: grab;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.orbit.is-orbiting {
+  cursor: grabbing;
+  transition: none;
+}
+
+/*
+ * La tapa rota con sentido negativo para que el borde libre barra
+ * hacia adelante (z positivo), como un clamshell que se abre hacia
+ * el espectador. El overshoot suave del bezier asienta la tapa.
+ */
+.lid {
+  position: absolute;
+  width: 616px;
+  height: 360px;
+  transform-origin: 50% 100%;
+  transform-style: preserve-3d;
+  transform: translateZ(21px) rotateX(-180deg);
+  transition: transform 0.65s cubic-bezier(0.55, 0, 0.68, 1.12);
+}
+
+.scene.is-open .lid {
+  transform: translateZ(21px) rotateX(0deg);
+  transition: transform 0.85s cubic-bezier(0.3, 1.18, 0.5, 1);
+}
+
+/* Canto: capas intermedias sin borde ni sombra para que el stack
+   se lea como espesor sólido desde cualquier ángulo. */
+.shell-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 32px 32px 8px 8px;
+  background: #d3d3d3;
+}
+
+.base-layer {
+  border-radius: 8px 8px 32px 32px;
+}
+
+.base {
+  position: absolute;
+  top: 360px;
+  left: 0;
+  width: 616px;
+  height: 360px;
+  transform-style: preserve-3d;
+}
+
+.base-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px 8px 32px 32px;
+  background: #c8c8c8;
+  transform: translateZ(-21px);
 }
 
 .top,
+.lid-back,
 .bottom {
   position: absolute;
   left: 0;
@@ -137,16 +203,59 @@
     inset 0 -4px 7px #00000026;
 }
 
-.top {
+.top,
+.lid-back {
   top: 0;
   height: 360px;
+  backface-visibility: hidden;
+}
+
+.top {
   border-radius: 32px 32px 8px 8px;
+  transform: translateZ(-1px);
+}
+
+/* Al plegarse, el borde libre de la carcasa queda globalmente abajo:
+   radios invertidos para que el redondeado siga al borde libre. */
+.lid-back {
+  border-radius: 8px 8px 32px 32px;
+  transform: rotateX(180deg) translateZ(37px);
+}
+
+.outer-camera {
+  position: absolute;
+  top: 15px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #161616;
+  border: 2px solid #777;
+}
+
+.outer-camera.left {
+  left: calc(50% - 42px);
+}
+
+.outer-camera.right {
+  right: calc(50% - 42px);
+}
+
+.lid-brand {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: #999;
 }
 
 .bottom {
-  top: 360px;
+  top: 0;
   height: 360px;
   border-radius: 8px 8px 32px 32px;
+  transform: translateZ(21px);
 }
 
 .camera {
@@ -267,7 +376,6 @@
 
 .hinge {
   position: absolute;
-  z-index: 20;
   left: 0;
   top: 342px;
   width: 616px;
@@ -278,6 +386,7 @@
   box-shadow:
     0 3px 4px #0000004d,
     inset 0 2px #ffffffb3;
+  transform: translateZ(21.5px);
 }
 
 .hinge::before,
@@ -318,6 +427,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  -webkit-user-drag: none;
   animation: ds-fade 0.32s ease;
 }
 
@@ -648,9 +758,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ds-scrim,
-  .ds-box,
   .screen-photo {
     animation: none;
+  }
+
+  .lid,
+  .scene,
+  .orbit {
+    transition: none;
   }
 
   .analog-stick,

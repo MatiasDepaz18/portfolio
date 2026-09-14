@@ -8,7 +8,6 @@ import { Trajectory } from './components/trajectory/trajectory';
 import { Education } from './components/education/education';
 import { Contact } from './components/contact/contact';
 import { Footer } from './components/footer/footer';
-import { ScrollPlant } from './components/scroll-plant/scroll-plant';
 
 @Component({
   selector: 'app-root',
@@ -22,7 +21,6 @@ import { ScrollPlant } from './components/scroll-plant/scroll-plant';
     Education,
     Contact,
     Footer,
-    ScrollPlant,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
